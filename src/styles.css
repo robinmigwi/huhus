@@ -231,17 +231,21 @@ a { color: inherit; text-decoration: none; }
   margin: 9px 0 8px; color: #351c1b; font: 700 30px Oswald, sans-serif;
   text-transform: uppercase;
 }
-.install-help-intro { color: #85776c; font-size: 11px; line-height: 1.7; margin: 0 0 18px; }
-.install-steps { display: grid; gap: 10px; margin-bottom: 20px; }
-.install-steps > div { padding: 12px 13px; border: 1px solid #eadfd0; background: #fffdf8; display: grid; gap: 5px; }
-.install-steps b { color: #6f2c20; font-size: 10px; }
-.install-steps span { color: #86786c; font-size: 9px; line-height: 1.6; }
+.install-help-intro { color: #75675c; font-size: 14px; line-height: 1.6; margin: 0 0 18px; }
+.install-steps { display: grid; gap: 10px; margin-bottom: 14px; }
+.install-steps > div { padding: 13px 14px; border: 1px solid #eadfd0; background: #fffdf8; display: grid; gap: 6px; }
+.install-steps b { color: #6f2c20; font-size: 12px; }
+.install-steps span { color: #75675c; font-size: 13px; line-height: 1.55; }
+.install-note { margin: 0 0 18px; color: #75675c; font-size: 12px; line-height: 1.5; }
 .cart-foot { padding-bottom: max(25px, env(safe-area-inset-bottom)); }
 .cart-drawer { padding-bottom: env(safe-area-inset-bottom); }
 @media (max-width: 700px) {
   .install-app { padding: 8px 9px; font-size: 9px; gap: 5px; }
   .network-status { display: none; }
-  .install-help-card { padding: 25px 20px 20px; }
+  .install-help-card { padding: 25px 20px 20px; max-height: calc(100dvh - 24px); }
+  .install-help-card h2 { font-size: 27px; }
+  .install-help-intro { font-size: 14px; }
+  .install-steps span { font-size: 13px; }
 }
 @media (display-mode: standalone) {
   .demo-ribbon { padding-top: env(safe-area-inset-top); }
