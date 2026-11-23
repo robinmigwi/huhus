@@ -230,13 +230,13 @@ app.innerHTML = `
       <button class="icon-button install-help-close" id="close-install-help" aria-label="Close install instructions">×</button>
       <div class="install-app-mark">H</div>
       <div class="eyebrow dark-eyebrow">TAKE HUHU'S WITH YOU</div>
-      <h2>Install the Huhu's app</h2>
-      <p class="install-help-intro">Add Huhu's to your home screen for an app-style experience and quicker access to the menu.</p>
-      <div class="install-steps">
-        <div><b>iPhone or iPad</b><span>Open this page in Safari, tap Share, choose “Add to Home Screen”, then tap Add.</span></div>
+      <h2 id="install-help-title">Install the Huhu's app</h2>
+      <p class="install-help-intro" id="install-help-intro">Add Huhu's to your device for an app-style experience and quicker access to the menu.</p>
+      <div class="install-steps" id="install-steps">
         <div><b>Android</b><span>In Chrome, open the browser menu (⋮) and choose “Install app” or “Add to Home screen”.</span></div>
-        <div><b>Computer</b><span>In Chrome or Edge, use the install icon in the address bar or choose “Install Huhu's” from the browser menu.</span></div>
+        <div><b>iPhone or iPad</b><span>In Safari, tap Share, choose “Add to Home Screen”, turn on “Open as Web App” if shown, then tap Add.</span></div>
       </div>
+      <p class="install-note" id="install-note" aria-live="polite"></p>
       <button class="place-order" id="close-install-help-done" type="button">Got it</button>
     </div>
   </div>
@@ -473,15 +473,65 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") { closeCart(); closeCheckout(); }
 });
 
-// PWA install experience. Chromium browsers use the native install prompt when available;
-// iOS and browsers without that event receive platform-specific Add to Home Screen guidance.
+// PWA install experience. Android Chromium browsers can offer a native install prompt.
+// iOS does not expose that prompt API, so its install flow must use the browser's Share menu.
 const installButton = document.querySelector("#install-app");
 const installHelpModal = document.querySelector("#install-help-modal");
+const installHelpTitle = document.querySelector("#install-help-title");
+const installHelpIntro = document.querySelector("#install-help-intro");
+const installSteps = document.querySelector("#install-steps");
+const installNote = document.querySelector("#install-note");
 let deferredInstallPrompt = null;
+
+const userAgent = navigator.userAgent || "";
+const isIOS = /iPhone|iPad|iPod/i.test(userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/i.test(userAgent);
+const isEmbeddedBrowser = /Instagram|FBAN|FBAV|WhatsApp|Messenger|TikTok|LinkedInApp/i.test(userAgent);
+
 const isRunningStandalone = () => window.matchMedia("(display-mode: standalone)").matches ||
   window.navigator.standalone === true;
 
 if (isRunningStandalone()) installButton.hidden = true;
+
+function renderInstallGuidance() {
+  if (isIOS) {
+    installHelpTitle.textContent = "Add Huhu's to your iPhone";
+    installHelpIntro.textContent = isEmbeddedBrowser
+      ? "This page is open inside another app. Open it in Safari first, then add Huhu's to your Home Screen."
+      : "Apple uses the Share menu for app installation. Follow these steps to add Huhu's to your Home Screen.";
+    installSteps.innerHTML = isEmbeddedBrowser
+      ? `<div><b>1. Open in Safari</b><span>Open the browser options in this app and choose “Open in Safari”.</span></div>
+         <div><b>2. Tap Share</b><span>In Safari, tap the Share button on the page.</span></div>
+         <div><b>3. Add Huhu's</b><span>Choose “Add to Home Screen”, turn on “Open as Web App” if shown, then tap Add.</span></div>`
+      : `<div><b>1. Tap Share</b><span>In Safari, tap the Share button on the Huhu's page.</span></div>
+         <div><b>2. Choose Add to Home Screen</b><span>Scroll through the Share options and tap “Add to Home Screen”.</span></div>
+         <div><b>3. Confirm</b><span>Turn on “Open as Web App” if shown, then tap Add.</span></div>`;
+    installNote.textContent = "This is normal on iPhone. Websites cannot open Apple's install sheet from their own button.";
+    return;
+  }
+
+  if (isAndroid) {
+    installHelpTitle.textContent = "Install Huhu's on Android";
+    installHelpIntro.textContent = isEmbeddedBrowser
+      ? "This page is open inside another app. Open it in Chrome to install Huhu's."
+      : "Use Chrome or Samsung Internet to add Huhu's to your phone like an app.";
+    installSteps.innerHTML = isEmbeddedBrowser
+      ? `<div><b>1. Open in Chrome</b><span>Use the browser menu in this app and choose “Open in Chrome”.</span></div>
+         <div><b>2. Open the browser menu</b><span>In Chrome, tap the three dots (⋮) at the top right.</span></div>
+         <div><b>3. Install Huhu's</b><span>Tap “Install app” or “Add to Home screen”, then confirm.</span></div>`
+      : `<div><b>1. Open the browser menu</b><span>In Chrome, tap the three dots (⋮) at the top right.</span></div>
+         <div><b>2. Choose Install app</b><span>Tap “Install app”. If that option is not shown, choose “Add to Home screen”.</span></div>
+         <div><b>3. Confirm</b><span>Accept the prompt. Huhu's will appear with your other apps.</span></div>`;
+    installNote.textContent = "If Chrome does not show an install option, it has not offered installation for this visit yet. Open the page in Chrome, interact with it, and check the browser menu again.";
+    return;
+  }
+
+  installHelpTitle.textContent = "Install the Huhu's app";
+  installHelpIntro.textContent = "Add Huhu's to your device for an app-style experience and quicker access to the menu.";
+  installSteps.innerHTML = `<div><b>Chrome or Edge</b><span>Use the install icon in the address bar or choose “Install Huhu's” from the browser menu.</span></div>`;
+  installNote.textContent = "The exact install option depends on your browser.";
+}
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
@@ -495,16 +545,31 @@ window.addEventListener("appinstalled", () => {
   showToast("Huhu's has been added to your device");
 });
 
-installButton.addEventListener("click", async () => {
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    const choice = await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    if (choice?.outcome === "accepted") installButton.hidden = true;
-    return;
-  }
+function openInstallHelp() {
+  renderInstallGuidance();
   installHelpModal.classList.add("visible");
   installHelpModal.setAttribute("aria-hidden", "false");
+}
+
+installButton.addEventListener("click", async () => {
+  if (deferredInstallPrompt) {
+    const installPrompt = deferredInstallPrompt;
+    deferredInstallPrompt = null;
+    try {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice?.outcome === "accepted") {
+        installButton.hidden = true;
+        return;
+      }
+      openInstallHelp();
+      return;
+    } catch {
+      openInstallHelp();
+      return;
+    }
+  }
+  openInstallHelp();
 });
 
 function closeInstallHelp() {
