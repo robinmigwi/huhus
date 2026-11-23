@@ -1,0 +1,8 @@
+name = "huhus-ordering-demo"
+compatibility_date = "2026-11-23"
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "huhus-orders"
+database_id = "74162786-95cc-49e5-8755-31c61accceda"
