@@ -3,7 +3,7 @@ import "./admin.css";
 const root=document.querySelector("#app");
 const money=n=>"KES "+new Intl.NumberFormat("en-KE",{maximumFractionDigits:0}).format(Number(n||0));
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let user=null,section="overview",menuData={categories:[],items:[]},filter="all";
+let user=null,section="overview",menuData={categories:[],items:[]},filter="all",dashboardTimer=null;
 
 async function api(path,options={}) {
   const response=await fetch("/api/"+path,{...options,headers:{"Content-Type":"application/json",...(options.headers||{})}});
@@ -28,6 +28,10 @@ async function renderShell() {
   document.querySelector("#logout-btn").onclick=async()=>{try{await api("admin/logout",{method:"POST"});}finally{user=null;loginScreen();}};
   document.querySelector("#refresh-btn").onclick=renderSection;
   await navigate("overview");
+  if(dashboardTimer)window.clearInterval(dashboardTimer);
+  dashboardTimer=window.setInterval(()=>{
+    if(["overview","orders"].includes(section)&&!document.querySelector("#order-modal"))renderSection();
+  },12000);
 }
 async function navigate(name) {
   section=name;
@@ -109,9 +113,9 @@ async function addCategory() {
 }
 async function showSettings(host) {
   const s=await api("admin/settings");
-  host.innerHTML='<div class="section-head"><div><h2>Store settings</h2><p>Control when the customer app can accept orders.</p></div></div><div class="settings-card"><div class="setting-row"><div><b>Accept online orders</b><small>Pause checkout when the store cannot accept online orders.</small></div><input type="checkbox" id="store-open" '+(s.storeOpen?"checked":"")+'></div><div class="setting-row"><div><b>Delivery</b><small>Allow delivery as a fulfilment option.</small></div><input type="checkbox" id="delivery-enabled" '+(s.deliveryEnabled?"checked":"")+'></div><div class="setting-row"><div><b>Collection</b><small>Allow customers to collect orders.</small></div><input type="checkbox" id="collection-enabled" '+(s.collectionEnabled?"checked":"")+'></div><label>Delivery fee (KES)<input id="delivery-fee" type="number" min="0" value="'+s.deliveryFeeKes+'"></label><label>Minimum order (KES)<input id="minimum-order" type="number" min="0" value="'+s.minimumOrderKes+'"></label><div class="mode-notice"><b>Preview mode is ON</b><span>Test orders are stored for demonstration and are not passed to Huhu’s live fulfilment team. Live mode requires operational sign-off and payment setup.</span></div><button class="primary-btn" id="save-settings">Save settings</button></div>';
+  host.innerHTML='<div class="section-head"><div><h2>Store settings</h2><p>Control when the customer app can accept orders.</p></div></div><div class="settings-card"><div class="setting-row"><div><b>Preview mode</b><small>Keep this ON during demonstrations. Preview orders are stored but are not treated as live restaurant orders.</small></div><input type="checkbox" id="demo-mode" '+(s.demoMode?"checked":"")+'></div><div class="mode-notice" id="mode-notice"><b>'+(s.demoMode?"Preview mode is ON":"Live ordering is ON")+'</b><span>'+(s.demoMode?"Test orders are marked as previews. Switch this off only after Huhu’s menu, delivery rules and staff workflow are approved.":"Customer orders will enter the operational order inbox. Confirm staff are ready to receive and fulfil them.")+'</span></div><div class="setting-row"><div><b>Accept online orders</b><small>Pause checkout when the store cannot accept orders.</small></div><input type="checkbox" id="store-open" '+(s.storeOpen?"checked":"")+'></div><div class="setting-row"><div><b>Delivery</b><small>Allow delivery as a fulfilment option.</small></div><input type="checkbox" id="delivery-enabled" '+(s.deliveryEnabled?"checked":"")+'></div><div class="setting-row"><div><b>Collection</b><small>Allow customers to collect orders.</small></div><input type="checkbox" id="collection-enabled" '+(s.collectionEnabled?"checked":"")+'></div><label>Delivery fee (KES)<input id="delivery-fee" type="number" min="0" value="'+s.deliveryFeeKes+'"></label><label>Minimum order (KES)<input id="minimum-order" type="number" min="0" value="'+s.minimumOrderKes+'"></label><button class="primary-btn" id="save-settings">Save settings</button></div>';
   document.querySelector("#save-settings").onclick=async()=>{
-    const values={storeOpen:document.querySelector("#store-open").checked,deliveryEnabled:document.querySelector("#delivery-enabled").checked,collectionEnabled:document.querySelector("#collection-enabled").checked,deliveryFeeKes:Number(document.querySelector("#delivery-fee").value),minimumOrderKes:Number(document.querySelector("#minimum-order").value)};
+    const values={demoMode:document.querySelector("#demo-mode").checked,storeOpen:document.querySelector("#store-open").checked,deliveryEnabled:document.querySelector("#delivery-enabled").checked,collectionEnabled:document.querySelector("#collection-enabled").checked,deliveryFeeKes:Number(document.querySelector("#delivery-fee").value),minimumOrderKes:Number(document.querySelector("#minimum-order").value)};
     try{await api("admin/settings",{method:"PATCH",body:JSON.stringify(values)});alert("Store settings saved.");}catch(error){alert(error.message);}
   };
 }
