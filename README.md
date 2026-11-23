@@ -26,3 +26,5 @@ No WhatsApp API or automation is connected. The customer PWA includes a scripted
 
 ## Build
 Use Node.js 20+, then npm install, npm run dev or npm run build.
+
+Preview build trigger: Pages preview deployment is enabled for this branch.
