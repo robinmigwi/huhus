@@ -251,3 +251,23 @@ a { color: inherit; text-decoration: none; }
   .demo-ribbon { padding-top: env(safe-area-inset-top); }
   .site-header { top: 0; }
 }
+
+
+/* Customer chat preview. This is intentionally not wired to WhatsApp. */
+.chat-launcher{position:fixed;right:24px;bottom:24px;z-index:85;border:0;border-radius:999px;background:#a90f18;color:#fff7e8;padding:14px 18px;box-shadow:0 12px 32px #2b090933;font-size:12px;font-weight:800;display:flex;align-items:center;gap:12px}
+.chat-launcher span{font-size:18px}.chat-launcher[hidden]{display:none}
+.chat-panel{position:fixed;right:24px;bottom:24px;z-index:90;width:min(370px,calc(100vw - 28px));height:min(570px,calc(100dvh - 40px));background:#fffaf1;border:1px solid #e8d9c7;border-radius:10px;box-shadow:0 22px 60px #260d0d35;display:none;overflow:hidden;grid-template-rows:auto 1fr auto auto}
+.chat-panel.open{display:grid}
+.chat-head{padding:15px 16px;background:#351c1b;color:#fff5e4;display:flex;justify-content:space-between;align-items:center}
+.chat-head>div{display:grid;gap:4px}.chat-head b{font-size:13px}.chat-head small{font-size:9px;color:#e3c6a6}
+.chat-head button{border:0;background:transparent;color:#fff;font-size:23px}
+.chat-messages{padding:15px;overflow:auto;display:flex;flex-direction:column;gap:10px;background:linear-gradient(#fffaf1,#fbf2e5)}
+.chat-message{max-width:88%;padding:10px 12px;border-radius:11px;font-size:11px;line-height:1.55}
+.chat-message.assistant{align-self:flex-start;background:#fff;border:1px solid #eee2d3;color:#594135;border-bottom-left-radius:3px}
+.chat-message.customer{align-self:flex-end;background:#a90f18;color:#fff8ea;border-bottom-right-radius:3px}
+.chat-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-top:1px solid #eee3d7}
+.chat-suggestions button{border:1px solid #e4cda9;background:#fff6e5;color:#764b28;border-radius:999px;padding:7px 9px;font-size:9px;font-weight:700}
+.chat-compose{display:flex;gap:8px;padding:11px;border-top:1px solid #eee3d7;background:#fff}
+.chat-compose input{min-width:0;flex:1;border:1px solid #e5d8c9;border-radius:5px;padding:10px;font-size:11px;outline-color:#bc8750}
+.chat-compose button{border:0;border-radius:5px;padding:0 15px;background:#a90f18;color:#fff;font-size:10px;font-weight:800}
+@media(max-width:700px){.chat-launcher{right:14px;bottom:14px;padding:12px 15px}.chat-panel{right:10px;bottom:10px;width:calc(100vw - 20px);height:min(620px,calc(100dvh - 20px))}}
