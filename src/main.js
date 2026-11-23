@@ -275,7 +275,7 @@ function getVisibleItems() {
 }
 
 function formatPrice(item) {
-  if (item.variants) {
+  if (item.variants?.length) {
     const values = item.variants.map((variant) => variant.price);
     const min = Math.min(...values);
     const max = Math.max(...values);
@@ -304,7 +304,7 @@ function renderMenu() {
     return;
   }
   grid.innerHTML = visible.map((item) => {
-    const variantSelect = item.variants ? `<label class="variant-label"><span>${item.variants.length > 1 ? "Choose option" : "Available size"}</span><select data-variant="${item.id}">${item.variants.map((v, i) => `<option value="${i}">${escapeHtml(v.label)} · KES ${money(v.price)}</option>`).join("")}</select></label>` : "";
+    const variantSelect = item.variants?.length ? `<label class="variant-label"><span>${item.variants.length > 1 ? "Choose option" : "Available size"}</span><select data-variant="${item.id}">${item.variants.map((v, i) => `<option value="${i}">${escapeHtml(v.label)} · KES ${money(v.price)}</option>`).join("")}</select></label>` : "";
     return `
       <article class="product-card">
         <div class="product-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">${item.badge ? `<span class="product-badge">${escapeHtml(item.badge)}</span>` : ""}</div>
@@ -313,7 +313,7 @@ function renderMenu() {
           <h3>${escapeHtml(item.name)}</h3>
           <p>${escapeHtml(item.description)}</p>
           <div class="product-card-bottom">
-            <div class="product-price"><b>${formatPrice(item)}</b><small>${item.variants ? "Price varies by option" : "Per item"}</small></div>
+            <div class="product-price"><b>${formatPrice(item)}</b><small>${item.variants?.length ? "Price varies by option" : "Per item"}</small></div>
             <button class="add-button" data-add="${item.id}" ${item.available === false ? "disabled" : ""} aria-label="Add ${escapeHtml(item.name)} to order">${item.available === false ? "Unavailable" : "<span>+</span> Add"}</button>
           </div>
           ${variantSelect}
@@ -455,7 +455,7 @@ async function loadBackendMenu() {
       menu = payload.items.map((item) => {
         const old = previous.get(item.id) || {};
         return { ...old, ...item, image: item.image_url || old.image || pizzaImage,
-          variants: Array.isArray(item.variants) ? item.variants : [], available: item.available !== false };
+          variants: Array.isArray(item.variants) && item.variants.length ? item.variants : undefined, available: item.available !== false };
       });
     }
     if (Array.isArray(payload.categories) && payload.categories.length) {
@@ -511,7 +511,7 @@ document.addEventListener("click", (event) => {
   if (addButton) {
     const item = menu.find((entry) => entry.id === addButton.dataset.add);
     const select = document.querySelector(`[data-variant="${item.id}"]`);
-    const variant = item.variants ? item.variants[Number(select?.value || 0)] : null;
+    const variant = item.variants?.length ? item.variants[Number(select?.value || 0)] : null;
     addToCart(item, variant);
     return;
   }
