@@ -1,5 +1,9 @@
 import "./styles.css";
 
+if (window.location.pathname.startsWith("/admin")) {
+  import("./admin.js");
+} else {
+
 const imageAssets = {
   chicken: new URL("../huhus/1.jpg", import.meta.url).href,
   burger: new URL("../huhus/Crunchy_Burger.jpg", import.meta.url).href,
@@ -12,7 +16,7 @@ const imageAssets = {
 const pizzaImage = "https://huhuspizza.co.ke/sites/default/files/default_images/chicken%20hawaiin-pizza.PNG";
 const logoImage = "https://huhuspizza.co.ke/sites/default/files/Huhus_logo.png";
 
-const categories = [
+let categories = [
   { id: "Pizza", label: "Pizza", image: pizzaImage, intro: "Classic favourites, loaded with toppings." },
   { id: "Burgers", label: "Burgers", image: imageAssets.burger, intro: "Crispy chicken and stacked beef burgers." },
   { id: "Chicken & Sides", label: "Chicken & Sides", image: imageAssets.chicken, intro: "Crunchy chicken, popcorn and fries." },
@@ -27,7 +31,7 @@ const categories = [
   { id: "Fruit Salads", label: "Fruit Salads", image: imageAssets.juices, intro: "Fresh fruit with optional extras." },
 ];
 
-const menu = [
+let menu = [
   { id: "pizza-meat-deluxe", category: "Pizza", name: "Meat Deluxe", description: "BBQ steak, boerewors, macon and pepperoni.", variants: [{ label: "Small", price: 750 }, { label: "Medium", price: 1000 }, { label: "Large", price: 1250 }], image: pizzaImage, badge: "Huhu's favourite" },
   { id: "pizza-hawaiian", category: "Pizza", name: "Hawaiian", description: "Macon and pineapples.", variants: [{ label: "Small", price: 750 }, { label: "Medium", price: 1000 }, { label: "Large", price: 1250 }], image: pizzaImage },
   { id: "pizza-four-seasons", category: "Pizza", name: "Four Seasons", description: "Pepperoni, tomatoes, black olives, onions and green pepper.", variants: [{ label: "Small", price: 750 }, { label: "Medium", price: 1000 }, { label: "Large", price: 1250 }], image: pizzaImage },
@@ -133,7 +137,7 @@ const state = {
 const app = document.querySelector("#app");
 
 app.innerHTML = `
-  <div class="demo-ribbon"><span></span> DEMO EXPERIENCE <span class="ribbon-note">Sample menu · No live orders or payments</span><span class="network-status" id="network-status">Online</span></div>
+  <div class="demo-ribbon"><span></span> ORDERING PREVIEW <span class="ribbon-note">Test orders appear in the Huhu’s management dashboard</span><span class="network-status" id="network-status">Online</span></div>
   <header class="site-header">
     <a class="brand" href="#" aria-label="Huhu's home"><img src="${logoImage}" alt="Huhu's Pizza & Grill logo"><span class="brand-wordmark">HUHU'S <small>PIZZA & GRILL</small></span></a>
     <nav class="desktop-nav" aria-label="Main navigation">
@@ -208,22 +212,24 @@ app.innerHTML = `
   <div class="checkout-modal" id="checkout-modal" aria-hidden="true">
     <div class="checkout-card">
       <div class="drawer-head"><div><small>ALMOST THERE</small><h2>Order details</h2></div><button class="icon-button" id="close-checkout" aria-label="Close checkout">×</button></div>
-      <div class="demo-warning"><b>Demo checkout</b><span>This is a product walkthrough. No payment will be collected and no order will be sent to Huhu's.</span></div>
+      <div class="demo-warning"><b>Test ordering environment</b><span>Your order will be saved in Huhu’s management dashboard for this demonstration. It will not be sent to restaurant staff for fulfilment.</span></div>
       <form id="checkout-form">
         <div class="fulfilment-switch"><button type="button" class="fulfilment-option selected" data-fulfilment="Delivery">Delivery</button><button type="button" class="fulfilment-option" data-fulfilment="Collection">Collection</button></div>
         <label>Your name<input name="customerName" required placeholder="e.g. Alex Mwangi"></label>
         <label>Phone number<input name="phone" type="tel" required placeholder="07xx xxx xxx"></label>
         <label id="address-field">Delivery location<input name="address" placeholder="Estate, street or landmark"></label>
+        <label>Payment method<select name="paymentMethod" id="payment-method"><option value="cash">Pay on delivery / collection</option><option value="mpesa" disabled>M-Pesa (Daraja connection required)</option></select></label>
+        <p class="secure-note" id="payment-note">M-Pesa will use a real Safaricom payment request once Huhu’s Daraja account is connected.</p>
         <label>Order notes <textarea name="notes" rows="2" placeholder="Anything we should know? (optional)"></textarea></label>
         <div class="checkout-total"><span>Order total</span><b id="checkout-total">KES 0</b></div>
-        <button class="place-order" type="submit">Place demo order <span>↗</span></button>
-        <p class="secure-note">🔒 Demo only · No payment details required</p>
+        <button class="place-order" type="submit">Submit order <span>↗</span></button>
+        <p class="secure-note">🔒 Order details are submitted to Huhu’s ordering system.</p>
       </form>
     </div>
   </div>
 
   <div class="success-modal" id="success-modal" aria-hidden="true">
-    <div class="success-card"><div class="success-check">✓</div><div class="eyebrow dark-eyebrow">DEMO ORDER COMPLETE</div><h2>That's a wrap!</h2><p>Your sample order has been created in this demo. No order was sent to the restaurant.</p><div class="success-ref" id="success-ref"></div><button id="success-done" class="place-order">Back to menu</button></div>
+    <div class="success-card"><div class="success-check">✓</div><div class="eyebrow dark-eyebrow" id="success-eyebrow">ORDER SAVED</div><h2 id="success-title">Order received</h2><p id="success-message">Your test order has been saved to Huhu’s management dashboard.</p><div class="success-ref" id="success-ref"></div><button id="success-done" class="place-order">Back to menu</button></div>
   </div>
   <div class="install-help-modal" id="install-help-modal" aria-hidden="true">
     <div class="install-help-card">
@@ -241,6 +247,13 @@ app.innerHTML = `
     </div>
   </div>
   <div class="toast" id="toast" role="status"></div>
+  <button class="chat-launcher" id="chat-launcher" type="button">Chat with Huhu’s <span>💬</span></button>
+  <section class="chat-panel" id="chat-panel" aria-label="Huhu’s conversation preview" aria-hidden="true">
+    <header class="chat-head"><div><b>Huhu’s assistant</b><small>Demo conversation · Not connected to WhatsApp</small></div><button type="button" id="chat-close">×</button></header>
+    <div class="chat-messages" id="chat-messages"><div class="chat-message assistant">Hi! Welcome to Huhu’s. I can help you explore the menu, understand delivery and collection, or explain how ordering works.</div></div>
+    <div class="chat-suggestions"><button type="button" data-chat-prompt="Show me the menu">Explore menu</button><button type="button" data-chat-prompt="Do you deliver?">Delivery</button><button type="button" data-chat-prompt="What are your opening hours?">Opening hours</button></div>
+    <form id="chat-form" class="chat-compose"><input id="chat-input" placeholder="Ask Huhu’s something..." autocomplete="off"><button type="submit">Send</button></form>
+  </section>
 `;
 
 let toastTimer;
@@ -301,7 +314,7 @@ function renderMenu() {
           <p>${escapeHtml(item.description)}</p>
           <div class="product-card-bottom">
             <div class="product-price"><b>${formatPrice(item)}</b><small>${item.variants ? "Price varies by option" : "Per item"}</small></div>
-            <button class="add-button" data-add="${item.id}" aria-label="Add ${escapeHtml(item.name)} to order"><span>+</span> Add</button>
+            <button class="add-button" data-add="${item.id}" ${item.available === false ? "disabled" : ""} aria-label="Add ${escapeHtml(item.name)} to order">${item.available === false ? "Unavailable" : "<span>+</span> Add"}</button>
           </div>
           ${variantSelect}
         </div>
@@ -388,22 +401,103 @@ function setFulfilment(mode) {
   address.querySelector("input").required = mode === "Delivery";
 }
 
-function completeDemoOrder(form) {
+async function completeDemoOrder(form) {
   const data = new FormData(form);
   const customerName = String(data.get("customerName") || "").trim();
   const phone = String(data.get("phone") || "").trim();
   const address = String(data.get("address") || "").trim();
+  const paymentMethod = String(data.get("paymentMethod") || "cash");
   if (!customerName || !phone || (state.fulfilment === "Delivery" && !address)) return;
-  const reference = "HUHU-DEMO-" + Math.random().toString(36).slice(2, 7).toUpperCase();
-  const summary = state.cart.map((item) => `${item.qty} × ${item.name}${item.variant ? " (" + item.variant + ")" : ""}`).join(" · ");
-  document.querySelector("#success-ref").innerHTML = `<b>${reference}</b><span>${escapeHtml(customerName)} · ${escapeHtml(state.fulfilment)} · KES ${money(cartTotal())}</span><small>${escapeHtml(summary)}</small>`;
-  closeCheckout();
-  document.querySelector("#success-modal").classList.add("visible");
-  document.querySelector("#success-modal").setAttribute("aria-hidden", "false");
-  state.cart = [];
-  renderCart();
-  form.reset();
-  setFulfilment("Delivery");
+  const button = form.querySelector('button[type="submit"]');
+  const original = button.innerHTML;
+  button.disabled = true;
+  button.textContent = "Submitting...";
+  try {
+    const response = await fetch("/api/orders", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customerName, phone, fulfilment: state.fulfilment.toLowerCase(), deliveryAddress: address,
+        notes: String(data.get("notes") || "").trim(), paymentMethod,
+        items: state.cart.map((item) => ({ itemId: item.id, variant: item.variant || "", quantity: item.qty }))
+      })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "The order could not be submitted.");
+    const summary = state.cart.map((item) => item.qty + " × " + item.name + (item.variant ? " (" + item.variant + ")" : "")).join(" · ");
+    document.querySelector("#success-ref").innerHTML = '<b>' + escapeHtml(result.reference) + '</b><span>' + escapeHtml(customerName) + ' · ' + escapeHtml(state.fulfilment) + ' · KES ' + money(result.totalKes || cartTotal()) + '</span><small>' + escapeHtml(summary) + '</small>';
+    document.querySelector("#success-eyebrow").textContent = result.paymentStatus === "pending" ? "PAYMENT REQUEST SENT" : "ORDER SAVED";
+    document.querySelector("#success-title").textContent = result.paymentStatus === "pending" ? "Check your phone" : "Order received";
+    document.querySelector("#success-message").textContent = result.paymentStatus === "pending"
+      ? "Complete the M-Pesa prompt on your phone. The order will only be confirmed after Safaricom verifies payment."
+      : "This test order is visible in Huhu’s management dashboard. It is not being sent to restaurant staff for fulfilment.";
+    closeCheckout();
+    document.querySelector("#success-modal").classList.add("visible");
+    document.querySelector("#success-modal").setAttribute("aria-hidden", "false");
+    state.cart = [];
+    renderCart();
+    form.reset();
+    setFulfilment("Delivery");
+  } catch (error) {
+    showToast(error.message || "Order submission failed.");
+  } finally {
+    button.disabled = false;
+    button.innerHTML = original;
+  }
+}
+
+async function loadBackendMenu() {
+  try {
+    const response = await fetch("/api/menu");
+    if (!response.ok) return;
+    const payload = await response.json();
+    if (Array.isArray(payload.items) && payload.items.length) {
+      const previous = new Map(menu.map((item) => [item.id, item]));
+      menu = payload.items.map((item) => {
+        const old = previous.get(item.id) || {};
+        return { ...old, ...item, image: item.image_url || old.image || pizzaImage,
+          variants: Array.isArray(item.variants) ? item.variants : [], available: item.available !== false };
+      });
+    }
+    if (Array.isArray(payload.categories) && payload.categories.length) {
+      const previous = new Map(categories.map((item) => [item.id, item]));
+      categories = payload.categories.map((item) => ({ ...(previous.get(item.id) || {}), ...item, image: item.image_url || (previous.get(item.id) || {}).image || pizzaImage }));
+    }
+    renderMenu();
+  } catch { /* keep the bundled catalogue available when offline */ }
+}
+async function loadPaymentOptions() {
+  try {
+    const response = await fetch("/api/health");
+    const health = await response.json();
+    const option = document.querySelector('#payment-method option[value="mpesa"]');
+    const note = document.querySelector("#payment-note");
+    if (!option) return;
+    option.disabled = !health.mpesaEnabled;
+    if (health.mpesaEnabled) note.textContent = "M-Pesa is connected. Your order updates only after Safaricom confirms the payment.";
+  } catch {}
+}
+function initChatPreview() {
+  const panel = document.querySelector("#chat-panel"), launcher = document.querySelector("#chat-launcher");
+  const messages = document.querySelector("#chat-messages"), input = document.querySelector("#chat-input");
+  const add = (value, role) => {
+    const node = document.createElement("div"); node.className = "chat-message " + role;
+    node.textContent = value; messages.appendChild(node); messages.scrollTop = messages.scrollHeight;
+  };
+  const reply = (value) => {
+    const q = value.toLowerCase();
+    if (/menu|pizza|burger|chicken/.test(q)) return "You can explore pizzas, burgers, chicken, sides, drinks and sharing offers in the menu. Select an item to add it to your order.";
+    if (/deliver|collect|pickup/.test(q)) return "The ordering experience supports delivery and collection. Huhu’s team will confirm delivery areas, charges and collection timing before launch.";
+    if (/hour|open|close/.test(q)) return "The current preview shows opening hours as 8:00 AM to 11:00 PM daily. Live hours will be confirmed with Huhu’s.";
+    if (/mpesa|pay|payment/.test(q)) return "The planned payment flow uses a real M-Pesa STK Push. Payment will only be marked complete after Safaricom sends a successful callback.";
+    if (/order|track|status/.test(q)) return "The system stores orders and tracks status. Customer WhatsApp updates can be connected after Huhu’s workflow is agreed.";
+    if (/person|human|staff|manager/.test(q)) return "The live experience can hand conversations to Huhu’s team. This preview is scripted and does not connect to staff.";
+    return "I can help with the menu, delivery, collection, opening hours, ordering or payments. What would you like to know?";
+  };
+  const send = (value) => { const clean = String(value || "").trim(); if (!clean) return; add(clean, "customer"); window.setTimeout(() => add(reply(clean), "assistant"), 220); };
+  launcher.addEventListener("click", () => { panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); launcher.hidden = true; input.focus(); });
+  document.querySelector("#chat-close").addEventListener("click", () => { panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); launcher.hidden = false; });
+  document.querySelector("#chat-form").addEventListener("submit", (event) => { event.preventDefault(); send(input.value); input.value = ""; });
+  panel.querySelectorAll("[data-chat-prompt]").forEach((button) => button.addEventListener("click", () => send(button.dataset.chatPrompt)));
 }
 
 document.addEventListener("click", (event) => {
@@ -602,3 +696,8 @@ if ("serviceWorker" in navigator) {
 renderMenu();
 renderCart();
 setFulfilment("Delivery");
+loadBackendMenu();
+loadPaymentOptions();
+initChatPreview();
+
+}
