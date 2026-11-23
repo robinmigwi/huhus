@@ -108,12 +108,22 @@ function slug(value) {
 }
 
 const money = (amount) => new Intl.NumberFormat("en-KE", { maximumFractionDigits: 0 }).format(amount);
+function loadSavedCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("huhus-demo-cart") || "[]");
+    if (!Array.isArray(saved)) return [];
+    return saved.filter((item) => item && typeof item.key === "string" && typeof item.name === "string" &&
+      Number.isFinite(item.price) && Number.isInteger(item.qty) && item.qty > 0);
+  } catch {
+    return [];
+  }
+}
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 
 const state = {
   activeCategory: "All",
   query: "",
-  cart: [],
+  cart: loadSavedCart(),
   cartOpen: false,
   checkoutOpen: false,
   orderPlaced: false,
@@ -123,7 +133,7 @@ const state = {
 const app = document.querySelector("#app");
 
 app.innerHTML = `
-  <div class="demo-ribbon"><span></span> DEMO EXPERIENCE <span class="ribbon-note">Sample menu · No live orders or payments</span></div>
+  <div class="demo-ribbon"><span></span> DEMO EXPERIENCE <span class="ribbon-note">Sample menu · No live orders or payments</span><span class="network-status" id="network-status">Online</span></div>
   <header class="site-header">
     <a class="brand" href="#" aria-label="Huhu's home"><img src="${logoImage}" alt="Huhu's Pizza & Grill logo"><span class="brand-wordmark">HUHU'S <small>PIZZA & GRILL</small></span></a>
     <nav class="desktop-nav" aria-label="Main navigation">
@@ -131,6 +141,7 @@ app.innerHTML = `
       <a href="#why-huhus">Why Huhu's</a>
       <a href="#visit-us">Find us</a>
     </nav>
+    <button class="install-app" id="install-app" type="button" aria-label="Install Huhu's app">↓ <span>Install app</span></button>
     <button class="header-cart" id="open-cart" aria-label="Open cart">
       <span class="cart-icon">🛒</span><span class="cart-label">Your order</span><span class="cart-count" id="cart-count">0</span>
     </button>
@@ -213,6 +224,21 @@ app.innerHTML = `
 
   <div class="success-modal" id="success-modal" aria-hidden="true">
     <div class="success-card"><div class="success-check">✓</div><div class="eyebrow dark-eyebrow">DEMO ORDER COMPLETE</div><h2>That's a wrap!</h2><p>Your sample order has been created in this demo. No order was sent to the restaurant.</p><div class="success-ref" id="success-ref"></div><button id="success-done" class="place-order">Back to menu</button></div>
+  </div>
+  <div class="install-help-modal" id="install-help-modal" aria-hidden="true">
+    <div class="install-help-card">
+      <button class="icon-button install-help-close" id="close-install-help" aria-label="Close install instructions">×</button>
+      <div class="install-app-mark">H</div>
+      <div class="eyebrow dark-eyebrow">TAKE HUHU'S WITH YOU</div>
+      <h2>Install the Huhu's app</h2>
+      <p class="install-help-intro">Add Huhu's to your home screen for an app-style experience and quicker access to the menu.</p>
+      <div class="install-steps">
+        <div><b>iPhone or iPad</b><span>Open this page in Safari, tap Share, choose “Add to Home Screen”, then tap Add.</span></div>
+        <div><b>Android</b><span>In Chrome, open the browser menu (⋮) and choose “Install app” or “Add to Home screen”.</span></div>
+        <div><b>Computer</b><span>In Chrome or Edge, use the install icon in the address bar or choose “Install Huhu's” from the browser menu.</span></div>
+      </div>
+      <button class="place-order" id="close-install-help-done" type="button">Got it</button>
+    </div>
   </div>
   <div class="toast" id="toast" role="status"></div>
 `;
@@ -307,6 +333,7 @@ function changeQty(key, change) {
   renderCart();
 }
 function renderCart() {
+  try { localStorage.setItem("huhus-demo-cart", JSON.stringify(state.cart)); } catch {}
   const count = cartCount();
   document.querySelector("#cart-count").textContent = count;
   document.querySelector("#drawer-count").textContent = `(${count})`;
@@ -445,6 +472,67 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key === "Escape") { closeCart(); closeCheckout(); }
 });
+
+// PWA install experience. Chromium browsers use the native install prompt when available;
+// iOS and browsers without that event receive platform-specific Add to Home Screen guidance.
+const installButton = document.querySelector("#install-app");
+const installHelpModal = document.querySelector("#install-help-modal");
+let deferredInstallPrompt = null;
+const isRunningStandalone = () => window.matchMedia("(display-mode: standalone)").matches ||
+  window.navigator.standalone === true;
+
+if (isRunningStandalone()) installButton.hidden = true;
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  installButton.hidden = isRunningStandalone();
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  installButton.hidden = true;
+  showToast("Huhu's has been added to your device");
+});
+
+installButton.addEventListener("click", async () => {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (choice?.outcome === "accepted") installButton.hidden = true;
+    return;
+  }
+  installHelpModal.classList.add("visible");
+  installHelpModal.setAttribute("aria-hidden", "false");
+});
+
+function closeInstallHelp() {
+  installHelpModal.classList.remove("visible");
+  installHelpModal.setAttribute("aria-hidden", "true");
+}
+document.querySelector("#close-install-help").addEventListener("click", closeInstallHelp);
+document.querySelector("#close-install-help-done").addEventListener("click", closeInstallHelp);
+installHelpModal.addEventListener("click", (event) => {
+  if (event.target === installHelpModal) closeInstallHelp();
+});
+
+function updateNetworkStatus() {
+  const status = document.querySelector("#network-status");
+  status.textContent = navigator.onLine ? "Online" : "Offline mode";
+  status.classList.toggle("offline", !navigator.onLine);
+}
+window.addEventListener("online", updateNetworkStatus);
+window.addEventListener("offline", updateNetworkStatus);
+updateNetworkStatus();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+      // The ordering demo remains usable online if service-worker registration is unavailable.
+    });
+  });
+}
 
 renderMenu();
 renderCart();

@@ -168,3 +168,82 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 370px) {
   .product-grid { grid-template-columns: 1fr; }.product-image { height: 155px; }.product-info > p { min-height: 0; }.variant-label { flex-direction: row; align-items: center; }
 }
+
+
+/* Progressive Web App controls and install guidance */
+.install-app {
+  border: 1px solid #e5c99e;
+  background: #fff7e7;
+  color: #7b2419;
+  border-radius: 999px;
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: background .2s, transform .2s;
+}
+.install-app:hover { background: #ffe9bd; transform: translateY(-1px); }
+.install-app[hidden] { display: none; }
+.network-status {
+  margin-left: 8px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(118, 194, 126, .15);
+  color: #b8f0be;
+  font-size: 8px;
+  letter-spacing: .04em;
+  text-transform: none;
+}
+.network-status.offline { background: rgba(255,197,46,.17); color: #ffe29b; }
+.install-help-modal {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(32,10,8,.62);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s, visibility .2s;
+}
+.install-help-modal.visible { opacity: 1; visibility: visible; }
+.install-help-card {
+  width: min(440px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  position: relative;
+  padding: 30px;
+  background: #fffaf1;
+  border-radius: 7px;
+  box-shadow: 0 22px 60px rgba(32,10,8,.25);
+}
+.install-help-close { position: absolute; top: 14px; right: 14px; }
+.install-app-mark {
+  width: 54px; height: 54px; display: grid; place-items: center;
+  background: #a90f18; color: #fff4dc; border: 3px solid #ffc52e;
+  border-radius: 15px; font: 700 34px Oswald, sans-serif; margin-bottom: 19px;
+}
+.install-help-card h2 {
+  margin: 9px 0 8px; color: #351c1b; font: 700 30px Oswald, sans-serif;
+  text-transform: uppercase;
+}
+.install-help-intro { color: #85776c; font-size: 11px; line-height: 1.7; margin: 0 0 18px; }
+.install-steps { display: grid; gap: 10px; margin-bottom: 20px; }
+.install-steps > div { padding: 12px 13px; border: 1px solid #eadfd0; background: #fffdf8; display: grid; gap: 5px; }
+.install-steps b { color: #6f2c20; font-size: 10px; }
+.install-steps span { color: #86786c; font-size: 9px; line-height: 1.6; }
+.cart-foot { padding-bottom: max(25px, env(safe-area-inset-bottom)); }
+.cart-drawer { padding-bottom: env(safe-area-inset-bottom); }
+@media (max-width: 700px) {
+  .install-app { padding: 8px 9px; font-size: 9px; gap: 5px; }
+  .network-status { display: none; }
+  .install-help-card { padding: 25px 20px 20px; }
+}
+@media (display-mode: standalone) {
+  .demo-ribbon { padding-top: env(safe-area-inset-top); }
+  .site-header { top: 0; }
+}

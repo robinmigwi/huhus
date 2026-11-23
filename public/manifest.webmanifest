@@ -1,0 +1,29 @@
+{
+  "id": "/",
+  "name": "Huhu's Pizza & Grill",
+  "short_name": "Huhu's",
+  "description": "Browse Huhu's Pizza & Grill menu and build your order.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#fffaf1",
+  "theme_color": "#a90f18",
+  "prefer_related_applications": false,
+  "categories": ["food", "shopping"],
+  "icons": [
+    {
+      "src": "/icons/huhus-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/huhus-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
