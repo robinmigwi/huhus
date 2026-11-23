@@ -20,7 +20,7 @@ function fromBase64(value) { return Uint8Array.from(atob(value), c=>c.charCodeAt
 async function digest(value) { return toBase64Url(new Uint8Array(await crypto.subtle.digest("SHA-256",encoder.encode(value)))); }
 async function derivePassword(password,salt) {
   const key=await crypto.subtle.importKey("raw",encoder.encode(password),"PBKDF2",false,["deriveBits"]);
-  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:180000,hash:"SHA-256"},key,256);
+  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:100000,hash:"SHA-256"},key,256);
   return toBase64Url(new Uint8Array(bits));
 }
 function constantTimeEqual(a,b) {
