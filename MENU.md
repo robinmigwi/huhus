@@ -13,10 +13,10 @@
 | Meat Deluxe | BBQ steak, boerewors, macon and pepperoni | KES 750 | KES 1,000 | KES 1,250 |
 | Hawaiian | Macon and pineapples | KES 750 | KES 1,000 | KES 1,250 |
 | Four Seasons | Pepperoni, tomatoes, black olives, onions and green pepper | KES 750 | KES 1,000 | KES 1,250 |
-| Pepperoni | Beef pepperoni | Not listed | Not listed | Not listed |
+| Pepperoni | Beef pepperoni | KES 750* | KES 1,000* | KES 1,250* |
 | Chicken Macon BBQ | Marinated chicken, macon, onions and pepper | KES 750 | KES 1,000 | KES 1,250 |
 
-**Source note:** The website heading is written as "MEAT DELUXE LARGE", although Small, Medium and Large prices are displayed beneath it. The catalogue uses "Meat Deluxe" as the product name pending confirmation. Pepperoni has no prices shown in the supplied website text.
+**Source note:** The website heading is written as "MEAT DELUXE LARGE", although Small, Medium and Large prices are displayed beneath it. The catalogue uses "Meat Deluxe" as the product name pending confirmation. Pepperoni prices are not shown in the supplied website text; for this demo they are provisionally set to the same Small, Medium and Large prices as the other pizzas, following the demo brief.
 
 ## 2. Burgers
 
