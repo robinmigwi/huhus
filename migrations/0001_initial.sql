@@ -9,3 +9,10 @@ CREATE TABLE IF NOT EXISTS order_events (id TEXT PRIMARY KEY,order_id TEXT NOT N
 CREATE TABLE IF NOT EXISTS mpesa_payments (id TEXT PRIMARY KEY,order_id TEXT NOT NULL,merchant_request_id TEXT NOT NULL DEFAULT '',checkout_request_id TEXT NOT NULL UNIQUE,phone_number TEXT NOT NULL,amount_kes INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'pending',mpesa_receipt_number TEXT NOT NULL DEFAULT '',result_code TEXT NOT NULL DEFAULT '',result_description TEXT NOT NULL DEFAULT '',callback_json TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS app_settings (setting_key TEXT PRIMARY KEY,setting_value TEXT NOT NULL,updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 INSERT OR IGNORE INTO app_settings(setting_key,setting_value) VALUES('delivery_enabled','true'),('collection_enabled','true'),('store_open','true'),('delivery_fee_kes','0'),('minimum_order_kes','0'),('demo_mode','true');
+
+CREATE INDEX IF NOT EXISTS idx_menu_items_category ON menu_items(category_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_staff_sessions_expiry ON staff_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_phone ON orders(customer_phone);
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_events_order ON order_events(order_id, created_at);
