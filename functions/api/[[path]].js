@@ -319,7 +319,13 @@ async function handleAdmin(request,db,user,route,method) {
   if(route==="admin/settings"&&method==="GET")return json(await getSettings(db));
   if(route==="admin/settings"&&method==="PATCH") {
     if(!["owner","manager"].includes(user.role))return json({error:"Only an owner or manager can update store settings."},403);
-    const input=await readBody(request),values=[
+    const input=await readBody(request);
+    if(input?.demoMode!==undefined) {
+      if(user.role!=="owner")return json({error:"Only the owner can switch between preview and live ordering."},403);
+      await db.prepare("INSERT INTO app_settings(setting_key,setting_value) VALUES('demo_mode',?) ON CONFLICT(setting_key) DO UPDATE SET setting_value=excluded.setting_value,updated_at=CURRENT_TIMESTAMP")
+        .bind(input.demoMode?"true":"false").run();
+    }
+    const values=[
       ["delivery_enabled","deliveryEnabled"],["collection_enabled","collectionEnabled"],["store_open","storeOpen"],
       ["delivery_fee_kes","deliveryFeeKes"],["minimum_order_kes","minimumOrderKes"]
     ];
