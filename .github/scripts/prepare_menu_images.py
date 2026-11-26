@@ -26,9 +26,9 @@ ITEM_TO_HASH = {
     "burger-double-beef": "9a7b7121",
     # Chicken and sides
     "chicken-piece": "f98f056b",
-    "chicken-one-piecer": "65635304",
-    "chicken-two-piecer": "555fc2dc",
-    "chicken-three-piecer": "31714c18",
+    "chicken-one-piecer": "f98f056b",
+    "chicken-two-piecer": "65635304",
+    "chicken-three-piecer": "555fc2dc",
     "chicken-six-piecer": "31714c18",
     "chicken-popcorn-small": "76b80645",
     "chicken-popcorn-large": "2ea52b86",
@@ -69,11 +69,11 @@ ITEM_TO_HASH = {
     "shake-chocolate": "8d549abe",
     "shake-pina-colada": "fcf34958",
     "shake-espresso": "b8e6fb98",
-    "shake-double-espresso": "59b3331b",
+    "shake-double-espresso": "b8e6fb98",
     "shake-bubblegum": "4f3dd517",
     "shake-banana": "c4d794aa",
     "shake-lime": "73d7ead3",
-    "shake-oreo": "8d549abe",
+    "shake-oreo": "59b3331b",
     # Healthy blends
     "blend-hydrant": "d20724fd",
     "blend-revital": "afc02b15",
@@ -100,12 +100,12 @@ ITEM_TO_HASH = {
     "smoothie-lean-green": "8d572a25",
     "smoothie-paso-mango": "586b7dee",
     "smoothie-tropical-fuse": "e74f2370",
-    "smoothie-pre-pro-kick": "f2145baf",
+    "smoothie-pre-pro-kick": "6d3e67ed",
     "smoothie-post-pro-kick": "f2145baf",
     "smoothie-super-choco-kick": "9ce25ab4",
     # Fruit salads
-    "salad-fruit": "cbaeed75",
-    "salad-fruit-honey": "e2e4a403",
+    "salad-fruit": "e2e4a403",
+    "salad-fruit-honey": "cbaeed75",
 }
 
 CATEGORY_TO_HASH = {
