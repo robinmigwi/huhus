@@ -13,17 +13,22 @@ if replacement not in main:
     main = main.replace(needle, replacement, 1)
 
 array_end = '];\n\nfunction slug(value)'
-if 'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || categoryImageMap[item.category] || item.image }));' not in main:
-    if main.count(array_end) != 1:
-        raise SystemExit("Could not locate the end of the bundled menu array.")
-    main = main.replace(
-        array_end,
-        '];\n\n'
-        'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || item.image }));\n'
-        'categories = categories.map((category) => ({ ...category, image: categoryImageMap[category.id] || category.image }));\n\n'
-        'function slug(value)',
-        1,
-    )
+base_item_map = 'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || item.image }));'
+category_item_map = 'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || categoryImageMap[item.category] || item.image }));'
+if category_item_map not in main:
+    if base_item_map in main:
+        main = main.replace(base_item_map, category_item_map, 1)
+    elif 'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || item.image }));' not in main:
+        if main.count(array_end) != 1:
+            raise SystemExit("Could not locate the end of the bundled menu array.")
+        main = main.replace(
+            array_end,
+            '];\n\n'
+            'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || categoryImageMap[item.category] || item.image }));\n'
+            'categories = categories.map((category) => ({ ...category, image: categoryImageMap[category.id] || category.image }));\n\n'
+            'function slug(value)',
+            1,
+        )
 
 old_item = 'image: item.image_url || old.image || pizzaImage,'
 new_item = 'image: item.image_url || menuImageMap[item.id] || categoryImageMap[item.category] || old.image || pizzaImage,'
