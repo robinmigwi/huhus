@@ -1,4 +1,5 @@
 import "./styles.css";
+import { menuImageMap, categoryImageMap } from "./menu-images.js";
 
 if (window.location.pathname.startsWith("/admin")) {
   import("./admin.js");
@@ -106,6 +107,9 @@ let menu = [
   { id: "salad-fruit", category: "Fruit Salads", name: "Assorted Fruit Salad", description: "Assorted fresh fruit.", price: 450, image: imageAssets.juices },
   { id: "salad-fruit-honey", category: "Fruit Salads", name: "Fruit Salad with Honey, Yoghurt & Nuts", description: "Assorted fruit with honey, yoghurt and nuts.", price: 550, image: imageAssets.juices },
 ];
+
+menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || item.image }));
+categories = categories.map((category) => ({ ...category, image: categoryImageMap[category.id] || category.image }));
 
 function slug(value) {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -454,13 +458,13 @@ async function loadBackendMenu() {
       const previous = new Map(menu.map((item) => [item.id, item]));
       menu = payload.items.map((item) => {
         const old = previous.get(item.id) || {};
-        return { ...old, ...item, image: item.image_url || old.image || pizzaImage,
+        return { ...old, ...item, image: item.image_url || menuImageMap[item.id] || old.image || pizzaImage,
           variants: Array.isArray(item.variants) && item.variants.length ? item.variants : undefined, available: item.available !== false };
       });
     }
     if (Array.isArray(payload.categories) && payload.categories.length) {
       const previous = new Map(categories.map((item) => [item.id, item]));
-      categories = payload.categories.map((item) => ({ ...(previous.get(item.id) || {}), ...item, image: item.image_url || (previous.get(item.id) || {}).image || pizzaImage }));
+      categories = payload.categories.map((item) => ({ ...(previous.get(item.id) || {}), ...item, image: item.image_url || categoryImageMap[item.id] || (previous.get(item.id) || {}).image || pizzaImage }));
     }
     renderMenu();
   } catch { /* keep the bundled catalogue available when offline */ }

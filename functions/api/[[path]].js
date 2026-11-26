@@ -1,4 +1,5 @@
 import { defaultMenuSeed, defaultCategorySeed } from "../../src/menu-seed.js";
+import { menuImageMap, categoryImageMap } from "../../src/menu-images.js";
 
 const encoder = new TextEncoder();
 const SESSION_COOKIE = "huhus_session";
@@ -91,8 +92,8 @@ async function getCatalog(db) {
     db.prepare("SELECT i.id,i.category_id AS category,i.name,i.description,i.price_kes AS price,i.variants_json,i.image_url,i.badge,i.available FROM menu_items i JOIN menu_categories c ON c.id=i.category_id WHERE c.is_active=1 ORDER BY c.sort_order,i.sort_order,i.name").all()
   ]);
   return {
-    categories:categories.results||[],
-    items:(items.results||[]).map(x=>({...x,variants:parseJson(x.variants_json,[]),available:Boolean(x.available)}))
+    categories:(categories.results||[]).map(x=>({...x,image_url:x.image_url||categoryImageMap[x.id]||""})),
+    items:(items.results||[]).map(x=>({...x,image_url:x.image_url||menuImageMap[x.id]||"",variants:parseJson(x.variants_json,[]),available:Boolean(x.available)}))
   };
 }
 async function bootstrapOwner(db,env) {
