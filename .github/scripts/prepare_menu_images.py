@@ -140,8 +140,11 @@ def main():
     # The menu cards use a wide landscape thumbnail. Keep the complete square
     # source photograph as the foreground and softly extend its own background
     # into the side areas. No part of the original food photograph is cropped.
-    CARD_SIZE = (900, 520)
-    FOREGROUND_SIZE = (520, 520)
+    # Match the wide, shallow thumbnail placeholder in the menu cards.
+    # At a 520px card width this produces a 150px-high image frame, with the
+    # complete original square photo displayed at approximately 150x150px.
+    CARD_SIZE = (1200, 345)
+    FOREGROUND_SIZE = (345, 345)
 
     for suffix in used_hashes:
         source = locate_source(suffix)
