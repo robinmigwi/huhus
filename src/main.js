@@ -311,7 +311,7 @@ function renderMenu() {
     const variantSelect = item.variants?.length ? `<label class="variant-label"><span>${item.variants.length > 1 ? "Choose option" : "Available size"}</span><select data-variant="${item.id}">${item.variants.map((v, i) => `<option value="${i}">${escapeHtml(v.label)} · KES ${money(v.price)}</option>`).join("")}</select></label>` : "";
     return `
       <article class="product-card">
-        <div class="product-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">${item.badge ? `<span class="product-badge">${escapeHtml(item.badge)}</span>` : ""}</div>
+        <div class="product-image" style="--product-photo: url(&quot;${escapeHtml(item.image)}&quot;)"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">${item.badge ? `<span class="product-badge">${escapeHtml(item.badge)}</span>` : ""}</div>
         <div class="product-info">
           <div class="product-category">${escapeHtml(item.category)}</div>
           <h3>${escapeHtml(item.name)}</h3>
