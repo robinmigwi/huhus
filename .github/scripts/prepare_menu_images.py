@@ -1,5 +1,5 @@
 from pathlib import Path
-from PIL import Image, ImageOps, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageOps, ImageDraw, ImageFont
 import json
 
 SOURCE_DIR = Path("huhus/Menu Images")
@@ -137,54 +137,30 @@ def main():
 
     used_hashes = sorted(set(ITEM_TO_HASH.values()) | set(CATEGORY_TO_HASH.values()))
     originals = {}
-    # The menu cards use a wide landscape thumbnail. Keep the complete square
-    # source photograph as the foreground and softly extend its own background
-    # into the side areas. No part of the original food photograph is cropped.
-    # Match the wide, shallow thumbnail placeholder in the menu cards.
-    # At a 520px card width this produces a 150px-high image frame, with the
-    # complete original square photo displayed at approximately 150x150px.
-    CARD_SIZE = (1200, 345)
-    FOREGROUND_SIZE = (345, 345)
+    # Source menu photographs are square. Generate square responsive thumbnails
+    # at the card's display width, preserving the complete source image.
+    # No crop, blur, background extension, or foreground inset is applied.
+    THUMBNAIL_SIZE = (720, 720)
 
     for suffix in used_hashes:
         source = locate_source(suffix)
         originals[suffix] = source
         with Image.open(source) as raw:
             image = ImageOps.exif_transpose(raw).convert("RGB")
-
-            # This copy is used only as the soft background extension.
-            backdrop = ImageOps.fit(
-                image, CARD_SIZE,
-                method=Image.Resampling.LANCZOS,
-                centering=(0.5, 0.5),
-            ).filter(ImageFilter.GaussianBlur(radius=26))
-            warm = Image.new("RGB", CARD_SIZE, (247, 241, 231))
-            backdrop = Image.blend(backdrop, warm, 0.24)
-
-            # Fit the whole original photograph inside the card, preserving
-            # its square aspect ratio and all image content.
-            foreground = ImageOps.contain(
-                image, FOREGROUND_SIZE,
+            thumbnail = ImageOps.contain(
+                image,
+                THUMBNAIL_SIZE,
                 method=Image.Resampling.LANCZOS,
             )
-
-            # Feather only the outermost edge so the original photo blends
-            # naturally into the extended backdrop without hiding its subject.
-            mask = Image.new("L", foreground.size, 255)
-            pixels = mask.load()
-            width, height = foreground.size
-            feather = 18
-            for x in range(width):
-                edge = min(x + 1, width - x)
-                alpha = 255 if edge >= feather else int(255 * edge / feather)
-                for y in range(height):
-                    pixels[x, y] = min(pixels[x, y], alpha)
-
-            canvas = backdrop.copy()
-            x = (CARD_SIZE[0] - foreground.width) // 2
-            y = (CARD_SIZE[1] - foreground.height) // 2
-            canvas.paste(foreground, (x, y), mask)
-            canvas.save(OUT_DIR / f"{suffix}.webp", "WEBP", quality=88, method=6)
+            # Keep the full original image ratio; square source photos render
+            # edge-to-edge while other ratios are letterboxed without cropping.
+            if thumbnail.size != THUMBNAIL_SIZE:
+                canvas = Image.new("RGB", THUMBNAIL_SIZE, (250, 247, 241))
+                x = (THUMBNAIL_SIZE[0] - thumbnail.width) // 2
+                y = (THUMBNAIL_SIZE[1] - thumbnail.height) // 2
+                canvas.paste(thumbnail, (x, y))
+                thumbnail = canvas
+            thumbnail.save(OUT_DIR / f"{suffix}.webp", "WEBP", quality=90, method=6)
 
     item_map = {item_id: f"/menu-images/{suffix}.webp" for item_id, suffix in ITEM_TO_HASH.items()}
     category_map = {category: f"/menu-images/{suffix}.webp" for category, suffix in CATEGORY_TO_HASH.items()}
