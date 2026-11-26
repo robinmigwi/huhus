@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - .github/workflows/prepare-huhus-menu-assets.yml
+      - .github/scripts/**
+      - "huhus/Menu Images/**"
   workflow_dispatch:
 
 permissions:
