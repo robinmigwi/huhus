@@ -108,7 +108,7 @@ let menu = [
   { id: "salad-fruit-honey", category: "Fruit Salads", name: "Fruit Salad with Honey, Yoghurt & Nuts", description: "Assorted fruit with honey, yoghurt and nuts.", price: 550, image: imageAssets.juices },
 ];
 
-menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || item.image }));
+menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || categoryImageMap[item.category] || item.image }));
 categories = categories.map((category) => ({ ...category, image: categoryImageMap[category.id] || category.image }));
 
 function slug(value) {
@@ -458,7 +458,7 @@ async function loadBackendMenu() {
       const previous = new Map(menu.map((item) => [item.id, item]));
       menu = payload.items.map((item) => {
         const old = previous.get(item.id) || {};
-        return { ...old, ...item, image: item.image_url || menuImageMap[item.id] || old.image || pizzaImage,
+        return { ...old, ...item, image: item.image_url || menuImageMap[item.id] || categoryImageMap[item.category] || old.image || pizzaImage,
           variants: Array.isArray(item.variants) && item.variants.length ? item.variants : undefined, available: item.available !== false };
       });
     }
