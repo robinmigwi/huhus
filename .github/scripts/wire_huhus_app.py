@@ -30,12 +30,16 @@ if category_item_map not in main:
             1,
         )
 
-old_item = 'image: item.image_url || old.image || pizzaImage,'
+old_item_candidates = [
+    'image: item.image_url || old.image || pizzaImage,',
+    'image: item.image_url || menuImageMap[item.id] || old.image || pizzaImage,',
+]
 new_item = 'image: item.image_url || menuImageMap[item.id] || categoryImageMap[item.category] || old.image || pizzaImage,'
 if new_item not in main:
-    if main.count(old_item) != 1:
+    matches = [candidate for candidate in old_item_candidates if candidate in main]
+    if len(matches) != 1:
         raise SystemExit("Could not locate the backend menu item image fallback.")
-    main = main.replace(old_item, new_item, 1)
+    main = main.replace(matches[0], new_item, 1)
 
 old_category = 'image: item.image_url || (previous.get(item.id) || {}).image || pizzaImage'
 new_category = 'image: item.image_url || categoryImageMap[item.id] || (previous.get(item.id) || {}).image || pizzaImage'
