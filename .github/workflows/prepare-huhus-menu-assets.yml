@@ -41,7 +41,6 @@ jobs:
         with:
           ref: demo/huhus-ordering
           path: app
-          token: \${{ github.token }}
 
       - name: Copy optimised photos and wire catalogue
         run: |
