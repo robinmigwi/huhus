@@ -1,0 +1,70 @@
+name: Prepare and deploy Huhu's menu photography
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/prepare-huhus-menu-assets.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-menu-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout image source branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install image processing library
+        run: python -m pip install --upgrade Pillow
+
+      - name: Resize and optimise all menu photos
+        run: python .github/scripts/prepare_menu_images.py
+
+      - name: Upload visual contact sheet for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: huhus-menu-image-contact-sheet
+          path: prepared/menu-image-contact-sheet.jpg
+          retention-days: 7
+
+      - name: Checkout deployed application branch
+        uses: actions/checkout@v4
+        with:
+          ref: demo/huhus-ordering
+          path: app
+          token: \${{ github.token }}
+
+      - name: Copy optimised photos and wire catalogue
+        run: |
+          mkdir -p app/public/menu-images
+          cp -f prepared/public/menu-images/*.webp app/public/menu-images/
+          cp -f prepared/src/menu-images.js app/src/menu-images.js
+          python .github/scripts/wire_huhus_app.py app
+
+      - name: Verify production build
+        working-directory: app
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Commit and push to Cloudflare production branch
+        working-directory: app
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/menu-images src/menu-images.js src/main.js 'functions/api/[[path]].js'
+          if git diff --cached --quiet; then
+            echo "No menu image changes to commit."
+            exit 0
+          fi
+          git commit -m "Add optimised menu photography and map images to products"
+          git push origin HEAD:demo/huhus-ordering
