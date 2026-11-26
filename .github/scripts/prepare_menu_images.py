@@ -1,5 +1,5 @@
 from pathlib import Path
-from PIL import Image, ImageOps, ImageDraw, ImageFont
+from PIL import Image, ImageOps, ImageDraw, ImageFont, ImageFilter
 import json
 
 SOURCE_DIR = Path("huhus/Menu Images")
@@ -137,17 +137,51 @@ def main():
 
     used_hashes = sorted(set(ITEM_TO_HASH.values()) | set(CATEGORY_TO_HASH.values()))
     originals = {}
+    # The menu cards use a wide landscape thumbnail. Keep the complete square
+    # source photograph as the foreground and softly extend its own background
+    # into the side areas. No part of the original food photograph is cropped.
+    CARD_SIZE = (900, 520)
+    FOREGROUND_SIZE = (520, 520)
+
     for suffix in used_hashes:
         source = locate_source(suffix)
         originals[suffix] = source
         with Image.open(source) as raw:
             image = ImageOps.exif_transpose(raw).convert("RGB")
-            square = ImageOps.fit(
-                image, (720, 720),
+
+            # This copy is used only as the soft background extension.
+            backdrop = ImageOps.fit(
+                image, CARD_SIZE,
                 method=Image.Resampling.LANCZOS,
                 centering=(0.5, 0.5),
+            ).filter(ImageFilter.GaussianBlur(radius=26))
+            warm = Image.new("RGB", CARD_SIZE, (247, 241, 231))
+            backdrop = Image.blend(backdrop, warm, 0.24)
+
+            # Fit the whole original photograph inside the card, preserving
+            # its square aspect ratio and all image content.
+            foreground = ImageOps.contain(
+                image, FOREGROUND_SIZE,
+                method=Image.Resampling.LANCZOS,
             )
-            square.save(OUT_DIR / f"{suffix}.webp", "WEBP", quality=80, method=6)
+
+            # Feather only the outermost edge so the original photo blends
+            # naturally into the extended backdrop without hiding its subject.
+            mask = Image.new("L", foreground.size, 255)
+            pixels = mask.load()
+            width, height = foreground.size
+            feather = 18
+            for x in range(width):
+                edge = min(x + 1, width - x)
+                alpha = 255 if edge >= feather else int(255 * edge / feather)
+                for y in range(height):
+                    pixels[x, y] = min(pixels[x, y], alpha)
+
+            canvas = backdrop.copy()
+            x = (CARD_SIZE[0] - foreground.width) // 2
+            y = (CARD_SIZE[1] - foreground.height) // 2
+            canvas.paste(foreground, (x, y), mask)
+            canvas.save(OUT_DIR / f"{suffix}.webp", "WEBP", quality=88, method=6)
 
     item_map = {item_id: f"/menu-images/{suffix}.webp" for item_id, suffix in ITEM_TO_HASH.items()}
     category_map = {category: f"/menu-images/{suffix}.webp" for category, suffix in CATEGORY_TO_HASH.items()}
