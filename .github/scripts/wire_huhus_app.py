@@ -13,7 +13,7 @@ if replacement not in main:
     main = main.replace(needle, replacement, 1)
 
 array_end = '];\n\nfunction slug(value)'
-if 'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || item.image }));' not in main:
+if 'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || categoryImageMap[item.category] || item.image }));' not in main:
     if main.count(array_end) != 1:
         raise SystemExit("Could not locate the end of the bundled menu array.")
     main = main.replace(
@@ -26,7 +26,7 @@ if 'menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || item.i
     )
 
 old_item = 'image: item.image_url || old.image || pizzaImage,'
-new_item = 'image: item.image_url || menuImageMap[item.id] || old.image || pizzaImage,'
+new_item = 'image: item.image_url || menuImageMap[item.id] || categoryImageMap[item.category] || old.image || pizzaImage,'
 if new_item not in main:
     if main.count(old_item) != 1:
         raise SystemExit("Could not locate the backend menu item image fallback.")
