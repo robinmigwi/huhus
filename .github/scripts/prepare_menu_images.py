@@ -1,6 +1,11 @@
 from pathlib import Path
+from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from PIL import Image, ImageOps, ImageDraw, ImageFont
 import json
+import os
+import time
+import requests
 
 SOURCE_DIR = Path("huhus/Menu Images")
 OUT_DIR = Path("prepared/public/menu-images")
@@ -137,30 +142,74 @@ def main():
 
     used_hashes = sorted(set(ITEM_TO_HASH.values()) | set(CATEGORY_TO_HASH.values()))
     originals = {}
-    # Source menu photographs are square. Generate square responsive thumbnails
-    # at the card's display width, preserving the complete source image.
-    # No crop, blur, background extension, or foreground inset is applied.
-    THUMBNAIL_SIZE = (720, 720)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    JS_OUT.parent.mkdir(parents=True, exist_ok=True)
 
-    for suffix in used_hashes:
-        source = locate_source(suffix)
-        originals[suffix] = source
+    used_hashes = sorted(set(ITEM_TO_HASH.values()) | set(CATEGORY_TO_HASH.values()))
+    originals = {suffix: locate_source(suffix) for suffix in used_hashes}
+    generated_paths = {}
+    IMAGE_FIT_URL = os.environ.get(
+        "HUHUS_IMAGE_FIT_URL",
+        "https://huhus-menu-image-fit.robinmigwi-ed6.workers.dev",
+    )
+    IMAGE_FIT_ORIGIN = "https://huhus-ordering-demo.pages.dev"
+    INPUT_SIZE = (480, 480)
+    OUTPUT_SIZE = (1600, 592)
+    OUTPUT_RATIO = OUTPUT_SIZE[0] / OUTPUT_SIZE[1]
+
+    def generate_landscape_asset(suffix):
+        source = originals[suffix]
         with Image.open(source) as raw:
             image = ImageOps.exif_transpose(raw).convert("RGB")
-            thumbnail = ImageOps.contain(
-                image,
-                THUMBNAIL_SIZE,
-                method=Image.Resampling.LANCZOS,
-            )
-            # Keep the full original image ratio; square source photos render
-            # edge-to-edge while other ratios are letterboxed without cropping.
-            if thumbnail.size != THUMBNAIL_SIZE:
-                canvas = Image.new("RGB", THUMBNAIL_SIZE, (250, 247, 241))
-                x = (THUMBNAIL_SIZE[0] - thumbnail.width) // 2
-                y = (THUMBNAIL_SIZE[1] - thumbnail.height) // 2
-                canvas.paste(thumbnail, (x, y))
-                thumbnail = canvas
-            thumbnail.save(OUT_DIR / f"{suffix}.webp", "WEBP", quality=90, method=6)
+            image = ImageOps.contain(image, INPUT_SIZE, method=Image.Resampling.LANCZOS)
+            buffer = BytesIO()
+            image.save(buffer, "JPEG", quality=88, optimize=True)
+
+        request_files = {
+            "image": (source.name, buffer.getvalue(), "image/jpeg")
+        }
+        headers = {"Origin": IMAGE_FIT_ORIGIN}
+        last_error = None
+
+        for attempt in range(3):
+            try:
+                response = requests.post(
+                    IMAGE_FIT_URL,
+                    files=request_files,
+                    headers=headers,
+                    timeout=(30, 300),
+                )
+                response.raise_for_status()
+                with Image.open(BytesIO(response.content)) as raw_output:
+                    output = ImageOps.exif_transpose(raw_output).convert("RGB")
+                    ratio = output.width / output.height
+                    if abs(ratio - OUTPUT_RATIO) > 0.03:
+                        raise ValueError(
+                            f"Model output for {suffix} has unexpected ratio "
+                            f"{output.width}x{output.height} ({ratio:.3f})"
+                        )
+                    if output.size != OUTPUT_SIZE:
+                        output = output.resize(OUTPUT_SIZE, Image.Resampling.LANCZOS)
+                    output_path = OUT_DIR / f"{suffix}.webp"
+                    output.save(output_path, "WEBP", quality=88, method=6)
+                    return suffix, output_path
+            except Exception as error:
+                last_error = error
+                if attempt < 2:
+                    time.sleep(3 * (attempt + 1))
+
+        raise RuntimeError(f"Could not generate wide asset for {suffix}: {last_error}")
+
+    # Generate assets from the original square uploads. The reference images are
+    # resized only for model input; the model creates a new wide composition.
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = {executor.submit(generate_landscape_asset, suffix): suffix for suffix in used_hashes}
+        completed = 0
+        for future in as_completed(futures):
+            suffix, output_path = future.result()
+            generated_paths[suffix] = output_path
+            completed += 1
+            print(f"[{completed}/{len(used_hashes)}] Generated {output_path.name}")
 
     item_map = {item_id: f"/menu-images/{suffix}.webp" for item_id, suffix in ITEM_TO_HASH.items()}
     category_map = {category: f"/menu-images/{suffix}.webp" for category, suffix in CATEGORY_TO_HASH.items()}
@@ -172,27 +221,33 @@ def main():
     ]
     JS_OUT.write_text("\n".join(lines), encoding="utf-8")
 
-    # Contact sheet for a visual review of every original upload.
-    columns, tile_w, tile_h = 4, 360, 390
-    rows = (len(originals) + columns - 1) // columns
+    # Contact sheet shows the generated landscape files for visual review.
+    columns, tile_w, tile_h = 4, 360, 190
+    rows = (len(generated_paths) + columns - 1) // columns
     sheet = Image.new("RGB", (columns * tile_w, rows * tile_h), "#f2eee7")
     draw = ImageDraw.Draw(sheet)
     try:
-        font = ImageFont.truetype("DejaVuSans.ttf", 17)
-        small = ImageFont.truetype("DejaVuSans.ttf", 13)
+        font = ImageFont.truetype("DejaVuSans.ttf", 15)
+        small = ImageFont.truetype("DejaVuSans.ttf", 12)
     except OSError:
         font = ImageFont.load_default()
         small = ImageFont.load_default()
-    for index, (suffix, path) in enumerate(sorted(originals.items())):
+
+    for index, (suffix, output_path) in enumerate(sorted(generated_paths.items())):
         x, y = (index % columns) * tile_w, (index // columns) * tile_h
-        with Image.open(path) as raw:
-            thumb = ImageOps.fit(ImageOps.exif_transpose(raw).convert("RGB"), (tile_w - 24, tile_w - 24))
-        sheet.paste(thumb, (x + 12, y + 10))
-        name = path.stem.replace("_2K", "")
-        draw.text((x + 12, y + tile_w), name[:42], fill="#302820", font=font)
-        draw.text((x + 12, y + tile_w + 27), f"source suffix: {suffix}", fill="#71675f", font=small)
+        with Image.open(output_path) as raw:
+            thumb = ImageOps.contain(
+                ImageOps.exif_transpose(raw).convert("RGB"),
+                (tile_w - 24, 124),
+                method=Image.Resampling.LANCZOS,
+            )
+        sheet.paste(thumb, (x + 12, y + 8))
+        source_name = originals[suffix].stem.replace("_2K", "")
+        draw.text((x + 12, y + 139), source_name[:42], fill="#302820", font=font)
+        draw.text((x + 12, y + 161), f"wide asset: {suffix}", fill="#71675f", font=small)
+
     CONTACT_SHEET.parent.mkdir(parents=True, exist_ok=True)
-    sheet.save(CONTACT_SHEET, "JPEG", quality=86, optimize=True)
+    sheet.save(CONTACT_SHEET, "JPEG", quality=88, optimize=True)
 
     total = sum(p.stat().st_size for p in OUT_DIR.glob("*.webp"))
     print(f"Mapped {len(item_map)} menu items using {len(used_hashes)} source images.")

@@ -74,4 +74,36 @@ if new_items not in api:
     api = api.replace(old_items, new_items, 1)
 
 api_path.write_text(api, encoding="utf-8")
+
+# Restore the original wide product-image slots. Only image files are changed;
+# card widths, card layout and the original breakpoint heights remain intact.
+styles_path = root / "src/styles.css"
+styles = styles_path.read_text(encoding="utf-8")
+
+css_replacements = [
+    (
+        ".product-image { position: relative; width: 100%; height: auto; aspect-ratio: 1 / 1; overflow: hidden; background: #fff; }",
+        ".product-image { position: relative; width: 100%; height: 150px; aspect-ratio: auto; overflow: hidden; background: #f5e6d1; }",
+    ),
+    (
+        ".product-image img { width: 100%; height: 100%; max-width: 100%; display: block; object-fit: contain; object-position: center; padding: 0; margin: 0; }",
+        ".product-image img { width: 100%; height: 100%; max-width: 100%; display: block; object-fit: cover; object-position: center 43%; padding: 0; margin: 0; }",
+    ),
+    (
+        ".product-image { height: auto; aspect-ratio: 1 / 1; }.product-image img { height: 100%; object-fit: contain; }",
+        ".product-image { height: 112px; aspect-ratio: auto; }.product-image img { height: 100%; object-fit: cover; object-position: center 43%; }",
+    ),
+    (
+        ".product-grid { grid-template-columns: 1fr; }.product-image { height: auto; aspect-ratio: 1 / 1; }.product-image img { height: 100%; object-fit: contain; }",
+        ".product-grid { grid-template-columns: 1fr; }.product-image { height: 155px; aspect-ratio: auto; }.product-image img { height: 100%; object-fit: cover; object-position: center 43%; }",
+    ),
+]
+
+for old, new in css_replacements:
+    if old in styles:
+        styles = styles.replace(old, new, 1)
+    elif new not in styles:
+        raise SystemExit(f"Could not locate expected product image CSS: {old[:90]}")
+
+styles_path.write_text(styles, encoding="utf-8")
 print("Wired menu image manifest into customer PWA and Pages API.")
