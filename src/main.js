@@ -364,28 +364,28 @@ function isCompactCategory(category) {
 function renderProductCard(item, compact = false) {
   const selectedIndex = Math.min(state.variantSelections[item.id] || 0, Math.max(0, (item.variants?.length || 1) - 1));
   const selectedVariant = item.variants?.[selectedIndex];
-  const price = selectedVariant ? \`KES \${money(selectedVariant.price)}\` : \`KES \${money(item.price)}\`;
-  const variantMarkup = item.variants?.length ? \`
+  const price = selectedVariant ? `KES ${money(selectedVariant.price)}` : `KES ${money(item.price)}`;
+  const variantMarkup = item.variants?.length ? `
     <div class="variant-picker">
-      <span class="variant-heading">Choose \${item.category === "Pizza" ? "size" : "option"}</span>
-      <div class="variant-options" role="group" aria-label="Choose an option for \${escapeHtml(item.name)}">
-        \${item.variants.map((variant, index) => \`<button type="button" class="variant-option \${index === selectedIndex ? "selected" : ""}" data-variant-item="\${escapeHtml(item.id)}" data-variant-index="\${index}" aria-pressed="\${index === selectedIndex}"><span>\${escapeHtml(variant.label)}</span><b>\${money(variant.price)}</b></button>\`).join("")}
+      <span class="variant-heading">Choose ${item.category === "Pizza" ? "size" : "option"}</span>
+      <div class="variant-options" role="group" aria-label="Choose an option for ${escapeHtml(item.name)}">
+        ${item.variants.map((variant, index) => `<button type="button" class="variant-option ${index === selectedIndex ? "selected" : ""}" data-variant-item="${escapeHtml(item.id)}" data-variant-index="${index}" aria-pressed="${index === selectedIndex}"><span>${escapeHtml(variant.label)}</span><b>${money(variant.price)}</b></button>`).join("")}
       </div>
-    </div>\` : "";
-  return \`
-    <article class="product-card \${compact ? "product-card-row" : "product-card-feature"}" data-product-card="\${escapeHtml(item.id)}">
-      <div class="product-image"><img src="\${escapeHtml(item.image)}" alt="\${escapeHtml(item.name)}" loading="lazy">\${item.badge ? \`<span class="product-badge">\${escapeHtml(item.badge)}</span>\` : ""}</div>
+    </div>` : "";
+  return `
+    <article class="product-card ${compact ? "product-card-row" : "product-card-feature"}" data-product-card="${escapeHtml(item.id)}">
+      <div class="product-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">${item.badge ? `<span class="product-badge">${escapeHtml(item.badge)}</span>` : ""}</div>
       <div class="product-info">
-        <div class="product-category">\${escapeHtml(item.category)}</div>
-        <h3>\${escapeHtml(item.name)}</h3>
-        <p>\${escapeHtml(item.description || "")}</p>
-        \${variantMarkup}
+        <div class="product-category">${escapeHtml(item.category)}</div>
+        <h3>${escapeHtml(item.name)}</h3>
+        <p>${escapeHtml(item.description || "")}</p>
+        ${variantMarkup}
         <div class="product-card-bottom">
-          <div class="product-price"><b data-price-display="\${escapeHtml(item.id)}">\${price}</b></div>
-          <button class="add-button" data-add="\${escapeHtml(item.id)}" \${item.available === false ? "disabled" : ""} aria-label="Add \${escapeHtml(item.name)} to order">\${item.available === false ? "Unavailable" : "Add to order"} <span aria-hidden="true">＋</span></button>
+          <div class="product-price"><b data-price-display="${escapeHtml(item.id)}">${price}</b></div>
+          <button class="add-button" data-add="${escapeHtml(item.id)}" ${item.available === false ? "disabled" : ""} aria-label="Add ${escapeHtml(item.name)} to order">${item.available === false ? "Unavailable" : "Add to order"} <span aria-hidden="true">＋</span></button>
         </div>
       </div>
-    </article>\`;
+    </article>`;
 }
 
 function renderMenu() {
@@ -393,11 +393,11 @@ function renderMenu() {
   const visible = getVisibleItems();
   const label = document.querySelector("#results-label");
   label.textContent = state.query.trim()
-    ? \`\${visible.length} \${visible.length === 1 ? "result" : "results"} for “\${state.query.trim()}”\`
-    : state.activeCategory === "All" ? \`\${menu.length} favourites across the Huhu's menu\` : \`\${visible.length} items in \${state.activeCategory}\`;
+    ? `${visible.length} ${visible.length === 1 ? "result" : "results"} for “${state.query.trim()}”`
+    : state.activeCategory === "All" ? `${menu.length} favourites across the Huhu's menu` : `${visible.length} items in ${state.activeCategory}`;
   renderCategories();
   if (!visible.length) {
-    grid.innerHTML = \`<div class="empty-state"><span>⌕</span><h3>No menu items found</h3><p>Try another search or choose a different category.</p><button class="reset-search" id="reset-search">Clear search</button></div>\`;
+    grid.innerHTML = `<div class="empty-state"><span>⌕</span><h3>No menu items found</h3><p>Try another search or choose a different category.</p><button class="reset-search" id="reset-search">Clear search</button></div>`;
     return;
   }
   const groups = state.activeCategory === "All"
@@ -405,16 +405,16 @@ function renderMenu() {
     : [{ id: state.activeCategory, label: state.activeCategory, items: visible }];
   grid.innerHTML = groups.map(group => {
     const compact = isCompactCategory(group.id);
-    return \`
-      <section class="menu-group \${compact ? "menu-group-compact" : "menu-group-feature"}" id="menu-\${slug(group.id)}">
+    return `
+      <section class="menu-group ${compact ? "menu-group-compact" : "menu-group-feature"}" id="menu-${slug(group.id)}">
         <div class="menu-group-heading">
-          <div><span class="menu-overline">THE MENU / \${escapeHtml(group.label)}</span><h3>\${escapeHtml(group.label)}<span>.</span></h3></div>
-          <span class="menu-group-count">\${group.items.length} \${group.items.length === 1 ? "item" : "items"}</span>
+          <div><span class="menu-overline">THE MENU / ${escapeHtml(group.label)}</span><h3>${escapeHtml(group.label)}<span>.</span></h3></div>
+          <span class="menu-group-count">${group.items.length} ${group.items.length === 1 ? "item" : "items"}</span>
         </div>
-        <div class="menu-group-grid \${compact ? "compact-list" : "feature-grid"}">
-          \${group.items.map(item => renderProductCard(item, compact)).join("")}
+        <div class="menu-group-grid ${compact ? "compact-list" : "feature-grid"}">
+          ${group.items.map(item => renderProductCard(item, compact)).join("")}
         </div>
-      </section>\`;
+      </section>`;
   }).join("");
 }
 
