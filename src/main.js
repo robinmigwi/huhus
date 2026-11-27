@@ -150,7 +150,7 @@ const state = {
 const app = document.querySelector("#app");
 
 app.innerHTML = `
-  <div class="preview-strip"><span class="preview-pulse"></span><b>PREVIEW ENVIRONMENT</b><span>Orders are for demonstration only</span></div>
+  <div class="preview-strip"><span class="preview-pulse"></span><b>PREVIEW ENVIRONMENT</b><span>Orders are for demonstration only</span><span class="network-status" id="network-status">Online</span></div>
   <header class="site-header">
     <a class="brand" href="/" aria-label="Huhu's home"><img src="${logoImage}" alt="Huhu's Pizza & Grill logo"><span class="brand-wordmark">HUHU'S <small>PIZZA & GRILL</small></span></a>
     <nav class="desktop-nav" aria-label="Main navigation">
@@ -401,7 +401,11 @@ function renderMenu() {
     return;
   }
   const groups = state.activeCategory === "All"
-    ? categories.map(category => ({ ...category, items: visible.filter(item => item.category === category.id) })).filter(group => group.items.length)
+    ? [...new Set([...categories.map(category => category.id), ...visible.map(item => item.category).filter(Boolean)])]
+        .map(id => {
+          const category = categories.find(item => item.id === id) || { id, label: id };
+          return { ...category, items: visible.filter(item => item.category === id) };
+        }).filter(group => group.items.length)
     : [{ id: state.activeCategory, label: state.activeCategory, items: visible }];
   grid.innerHTML = groups.map(group => {
     const compact = isCompactCategory(group.id);
@@ -642,6 +646,69 @@ offersHero?.addEventListener("focusout", () => {
   heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 6500);
 });
 
+// Daily Offers carousel: autoplay through every poster, with manual controls and touch support.
+const dailyOffersTrack = document.querySelector("#daily-offers-track");
+const dailyOffersProgress = document.querySelector(".daily-progress i");
+const dailyOffersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let dailyOffersTimer = null;
+let dailyOffersResumeTimer = null;
+
+function updateDailyOffersProgress() {
+  if (!dailyOffersTrack || !dailyOffersProgress) return;
+  const maxScroll = dailyOffersTrack.scrollWidth - dailyOffersTrack.clientWidth;
+  const progress = maxScroll > 0 ? dailyOffersTrack.scrollLeft / maxScroll : 0;
+  dailyOffersProgress.style.transform = `translateX(${Math.max(0, Math.min(1, progress)) * 194}%)`;
+}
+
+function scrollDailyOffers(direction = 1) {
+  if (!dailyOffersTrack) return;
+  const firstCard = dailyOffersTrack.querySelector(".daily-offer-card");
+  if (!firstCard) return;
+  const gap = Number.parseFloat(getComputedStyle(dailyOffersTrack).columnGap) || 0;
+  const step = firstCard.getBoundingClientRect().width + gap;
+  const maxScroll = Math.max(0, dailyOffersTrack.scrollWidth - dailyOffersTrack.clientWidth);
+  const current = dailyOffersTrack.scrollLeft;
+  const behavior = dailyOffersReducedMotion ? "auto" : "smooth";
+  let next = current + step * direction;
+  if (direction > 0 && current >= maxScroll - 8) next = 0;
+  else if (direction < 0 && current <= 8) next = maxScroll;
+  else next = Math.max(0, Math.min(maxScroll, next));
+  dailyOffersTrack.scrollTo({ left: next, behavior });
+}
+
+function pauseDailyOffers() {
+  if (dailyOffersTimer) window.clearInterval(dailyOffersTimer);
+  dailyOffersTimer = null;
+}
+
+function resumeDailyOffers() {
+  if (dailyOffersReducedMotion || document.hidden || dailyOffersTimer) return;
+  dailyOffersTimer = window.setInterval(() => scrollDailyOffers(1), 4300);
+}
+
+function pauseThenResumeDailyOffers() {
+  pauseDailyOffers();
+  if (dailyOffersResumeTimer) window.clearTimeout(dailyOffersResumeTimer);
+  dailyOffersResumeTimer = window.setTimeout(resumeDailyOffers, 6500);
+}
+
+if (dailyOffersTrack) {
+  dailyOffersTrack.addEventListener("scroll", updateDailyOffersProgress, { passive: true });
+  dailyOffersTrack.addEventListener("mouseenter", pauseDailyOffers);
+  dailyOffersTrack.addEventListener("mouseleave", resumeDailyOffers);
+  dailyOffersTrack.addEventListener("focusin", pauseDailyOffers);
+  dailyOffersTrack.addEventListener("focusout", event => {
+    if (!dailyOffersTrack.contains(event.relatedTarget)) resumeDailyOffers();
+  });
+  dailyOffersTrack.addEventListener("pointerdown", pauseDailyOffers, { passive: true });
+  dailyOffersTrack.addEventListener("pointerup", pauseThenResumeDailyOffers, { passive: true });
+  dailyOffersTrack.addEventListener("touchstart", pauseDailyOffers, { passive: true });
+  dailyOffersTrack.addEventListener("touchend", pauseThenResumeDailyOffers, { passive: true });
+  document.addEventListener("visibilitychange", () => document.hidden ? pauseDailyOffers() : resumeDailyOffers());
+  updateDailyOffersProgress();
+  resumeDailyOffers();
+}
+
 document.addEventListener("click", (event) => {
   if (event.target.closest("[data-hero-next]")) { showHeroSlide(activeHeroSlide + 1); return; }
   if (event.target.closest("[data-hero-prev]")) { showHeroSlide(activeHeroSlide - 1); return; }
@@ -691,9 +758,9 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("#reset-search")) { state.query = ""; document.querySelector("#menu-search").value = ""; state.activeCategory = "All"; renderMenu(); return; }
   if (event.target.closest("#mobile-order-bar")) { openCart(); return; }
   const dailyNext = event.target.closest("[data-daily-next]");
-  if (dailyNext) { const track = document.querySelector("#daily-offers-track"); track?.scrollBy({ left: track.clientWidth * 0.82, behavior: "smooth" }); return; }
+  if (dailyNext) { scrollDailyOffers(1); pauseThenResumeDailyOffers(); return; }
   const dailyPrev = event.target.closest("[data-daily-prev]");
-  if (dailyPrev) { const track = document.querySelector("#daily-offers-track"); track?.scrollBy({ left: -track.clientWidth * 0.82, behavior: "smooth" }); return; }
+  if (dailyPrev) { scrollDailyOffers(-1); pauseThenResumeDailyOffers(); return; }
   const goCategory = event.target.closest("[data-go-category]");
   if (goCategory) {
     state.activeCategory = goCategory.dataset.goCategory;
@@ -846,6 +913,7 @@ installHelpModal.addEventListener("click", (event) => {
 
 function updateNetworkStatus() {
   const status = document.querySelector("#network-status");
+  if (!status) return;
   status.textContent = navigator.onLine ? "Online" : "Offline mode";
   status.classList.toggle("offline", !navigator.onLine);
 }
