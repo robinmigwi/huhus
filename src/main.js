@@ -3,7 +3,10 @@ import { menuImageMap, categoryImageMap } from "./menu-images.js";
 
 if (window.location.pathname.startsWith("/admin")) {
   import("./admin.js");
+} else if (window.location.pathname.startsWith("/offers")) {
+  import("./offers.js");
 } else {
+  import("./customer-premium.css");
 
 const imageAssets = {
   chicken: new URL("../huhus/1.jpg", import.meta.url).href,
@@ -12,6 +15,10 @@ const imageAssets = {
   chickenOffer: new URL("../huhus/Huhus_Fried_Chicken_Offer.jpg", import.meta.url).href,
   coffee: new URL("../huhus/COFFEE.jpeg", import.meta.url).href,
   juices: new URL("../huhus/JUICES.jpeg", import.meta.url).href,
+  dailyBurger: new URL("../huhus/daily offers/burger combo.jpg", import.meta.url).href,
+  dailyChicken: new URL("../huhus/daily offers/huhus-2piecer-offers every wednesday.jpg", import.meta.url).href,
+  dailyVeggie: new URL("../huhus/daily offers/Huhus-Veggie-combo.jpg", import.meta.url).href,
+  dailyPizza: new URL("../huhus/daily offers/Huhus_PIZZA_OFFER every wednesday.jpg", import.meta.url).href,
 };
 
 const pizzaImage = "https://huhuspizza.co.ke/sites/default/files/default_images/chicken%20hawaiin-pizza.PNG";
@@ -131,6 +138,7 @@ const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ "&"
 const state = {
   activeCategory: "All",
   query: "",
+  variantSelections: {},
   cart: loadSavedCart(),
   cartOpen: false,
   checkoutOpen: false,
@@ -141,18 +149,20 @@ const state = {
 const app = document.querySelector("#app");
 
 app.innerHTML = `
-  <div class="demo-ribbon"><span></span> ORDERING PREVIEW <span class="ribbon-note">Test orders appear in the Huhu’s management dashboard</span><span class="network-status" id="network-status">Online</span></div>
+  <div class="preview-strip"><span class="preview-pulse"></span><b>PREVIEW ENVIRONMENT</b><span>Orders are for demonstration only</span></div>
   <header class="site-header">
-    <a class="brand" href="#" aria-label="Huhu's home"><img src="${logoImage}" alt="Huhu's Pizza & Grill logo"><span class="brand-wordmark">HUHU'S <small>PIZZA & GRILL</small></span></a>
+    <a class="brand" href="/" aria-label="Huhu's home"><img src="${logoImage}" alt="Huhu's Pizza & Grill logo"><span class="brand-wordmark">HUHU'S <small>PIZZA & GRILL</small></span></a>
     <nav class="desktop-nav" aria-label="Main navigation">
       <a href="#menu-section" class="nav-active">Menu</a>
-      <a href="#why-huhus">Why Huhu's</a>
-      <a href="#visit-us">Find us</a>
+      <a href="/offers">Offers</a>
+      <a href="https://www.google.com/maps/search/?api=1&query=Total+Energies%2C+Kitisuru+Place%2C+Getathuru+Road%2C+Nairobi" target="_blank" rel="noopener">Find us</a>
     </nav>
-    <button class="install-app" id="install-app" type="button" aria-label="Install Huhu's app">↓ <span>Install app</span></button>
-    <button class="header-cart" id="open-cart" aria-label="Open cart">
-      <span class="cart-icon">🛒</span><span class="cart-label">Your order</span><span class="cart-count" id="cart-count">0</span>
-    </button>
+    <div class="header-actions">
+      <button class="install-app" id="install-app" type="button" aria-label="Install Huhu's app">↓ <span>Install</span></button>
+      <button class="header-cart" id="open-cart" aria-label="Open cart">
+        <span class="cart-label">Your order</span><span class="header-cart-total" id="cart-total">KES 0</span><span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
   </header>
 
   <main>
@@ -187,11 +197,42 @@ app.innerHTML = `
       <div class="hero-bottom-mark">HUHU'S PIZZA & GRILL <span>•</span> KITISURU, NAIROBI</div>
     </section>
 
-    <section class="quick-highlights" id="why-huhus">
-      <div><span class="highlight-icon">🍕</span><span><b>Pizza favourites</b><small>Choose your size</small></span></div>
-      <div><span class="highlight-icon">🍗</span><span><b>Crunchy chicken</b><small>Made for sharing</small></span></div>
-      <div><span class="highlight-icon">🍔</span><span><b>Burgers & combos</b><small>Big bites, bold flavour</small></span></div>
-      <div><span class="highlight-icon">🥤</span><span><b>Freshly blended</b><small>Juices and smoothies</small></span></div>
+    <section class="daily-offers-section" id="daily-offers">
+      <div class="daily-offers-heading">
+        <div>
+          <div class="eyebrow dark-eyebrow"><span class="eyebrow-line"></span> SOMETHING GOOD EVERY DAY</div>
+          <h2>Daily offers<span>.</span></h2>
+          <p>Good food, special prices and reasons to come back.</p>
+        </div>
+        <div class="daily-offers-actions">
+          <a href="/offers" class="all-offers-link">See all offers <span>↗</span></a>
+          <div class="daily-arrows">
+            <button type="button" data-daily-prev aria-label="Previous daily offers">←</button>
+            <button type="button" data-daily-next aria-label="Next daily offers">→</button>
+          </div>
+        </div>
+      </div>
+      <div class="daily-offers-viewport">
+        <div class="daily-offers-track" id="daily-offers-track" aria-label="Daily offers carousel">
+          <article class="daily-offer-card">
+            <a class="daily-offer-art" href="/offers" aria-label="View Burger Combo offer"><img src="${imageAssets.dailyBurger}" alt="Huhu's Burger Combo with fries and 350ml soda for KES 650" loading="lazy"></a>
+            <div class="daily-offer-meta"><span>BURGER COMBO</span><button type="button" data-go-category="Offers">View menu <span>↗</span></button></div>
+          </article>
+          <article class="daily-offer-card">
+            <a class="daily-offer-art" href="/offers" aria-label="View Wednesday 2-Piecer offer"><img src="${imageAssets.dailyChicken}" alt="Wednesday 2 pieces of chicken with fries and coleslaw for KES 400, 3 to 6pm" loading="lazy"></a>
+            <div class="daily-offer-meta"><span>WEDNESDAY 2-PIECER</span><button type="button" data-go-category="Chicken & Sides">View menu <span>↗</span></button></div>
+          </article>
+          <article class="daily-offer-card">
+            <a class="daily-offer-art" href="/offers" aria-label="View Veggie Rice Combo offer"><img src="${imageAssets.dailyVeggie}" alt="Huhu's Veggie Rice Combo for KES 600" loading="lazy"></a>
+            <div class="daily-offer-meta"><span>VEGGIE RICE COMBO</span><button type="button" data-go-category="Chicken & Sides">View menu <span>↗</span></button></div>
+          </article>
+          <article class="daily-offer-card">
+            <a class="daily-offer-art" href="/offers" aria-label="View Super Tuesday Pizza offer"><img src="${imageAssets.dailyPizza}" alt="Huhu's Super Tuesday Buy 1 Get 1 Free pizza offer" loading="lazy"></a>
+            <div class="daily-offer-meta"><span>SUPER TUESDAY PIZZA</span><button type="button" data-go-category="Pizza">View menu <span>↗</span></button></div>
+          </article>
+        </div>
+      </div>
+      <div class="daily-offers-foot"><span>Swipe to explore more offers</span><span class="daily-progress"><i></i></span></div>
     </section>
 
     <section class="menu-section" id="menu-section">
@@ -204,18 +245,23 @@ app.innerHTML = `
       <div class="product-grid" id="product-grid"></div>
     </section>
 
-    <section class="promo-band">
-      <div class="promo-copy"><div class="eyebrow"><span class="eyebrow-line"></span> MADE FOR THE WHOLE CREW</div><h2>Good food is<br><em>better together.</em></h2><p>Bring everyone to the table with Huhu's sharing offers.</p><button class="light-cta" data-go-category="Offers">See sharing offers <span>↗</span></button></div>
-      <div class="promo-photos"><img src="${imageAssets.chickenOffer}" alt="Huhu's chicken family feast"><img src="${imageAssets.burgerOffer}" alt="Huhu's burger combo"></div>
-    </section>
-
     <section class="visit-section" id="visit-us">
-      <div><div class="eyebrow dark-eyebrow"><span class="eyebrow-line"></span> COME THROUGH</div><h2>Find your way<br>to <em>Huhu's.</em></h2><p>Visit us at Total Energies, Kitisuru Place, Getathuru Road, Nairobi.</p></div>
-      <div class="visit-details"><div><span class="detail-icon">📍</span><span><small>FIND US</small><b>Total Energies, Kitisuru Place<br>Getathuru Road, Nairobi</b></span></div><div><span class="detail-icon">☎</span><span><small>CALL TO ORDER</small><b>+254 743 830 555</b></span></div><div><span class="detail-icon">◷</span><span><small>OPEN DAILY</small><b>Monday – Sunday · 8:00 AM – 11:00 PM</b></span></div><a class="visit-call" href="tel:+254743830555">Call Huhu's <span>↗</span></a></div>
+      <div class="visit-intro">
+        <div class="eyebrow dark-eyebrow"><span class="eyebrow-line"></span> COME THROUGH</div>
+        <h2>Good food is<br>closer than you think<span>.</span></h2>
+        <p>Find Huhu's at Total Energies, Kitisuru Place, Getathuru Road, Nairobi.</p>
+        <a class="maps-link" href="https://www.google.com/maps/search/?api=1&query=Total+Energies%2C+Kitisuru+Place%2C+Getathuru+Road%2C+Nairobi" target="_blank" rel="noopener">Get directions <span>↗</span></a>
+      </div>
+      <div class="visit-details">
+        <div><small>FIND US</small><b>Total Energies, Kitisuru Place<br>Getathuru Road, Nairobi</b></div>
+        <div><small>CALL TO ORDER</small><b>+254 743 830 555</b></div>
+        <div><small>OPEN DAILY</small><b>Monday – Sunday<br>8:00 AM – 11:00 PM</b></div>
+        <a class="visit-call" href="tel:+254743830555">Call Huhu's <span>↗</span></a>
+      </div>
     </section>
   </main>
 
-  <footer class="site-footer"><a class="footer-brand" href="#"><img src="${logoImage}" alt=""><span>HUHU'S <small>PIZZA & GRILL</small></span></a><p>Good food. Good mood. Always.</p><span class="footer-demo">Concept ordering demo by DigiGuru</span></footer>
+  <footer class="site-footer"><a class="footer-brand" href="/"><img src="${logoImage}" alt="Huhu's Pizza & Grill"><span>HUHU'S <small>PIZZA & GRILL</small></span></a><nav><a href="#menu-section">Menu</a><a href="/offers">Offers</a><a href="https://www.google.com/maps/search/?api=1&query=Total+Energies%2C+Kitisuru+Place%2C+Getathuru+Road%2C+Nairobi" target="_blank" rel="noopener">Find us</a></nav><span class="footer-demo">Ordering preview</span></footer>
 
   <div class="overlay" id="overlay"></div>
   <aside class="cart-drawer" id="cart-drawer" aria-label="Your order" aria-hidden="true">
@@ -238,7 +284,7 @@ app.innerHTML = `
         <label>Order notes <textarea name="notes" rows="2" placeholder="Anything we should know? (optional)"></textarea></label>
         <div class="checkout-total"><span>Order total</span><b id="checkout-total">KES 0</b></div>
         <button class="place-order" type="submit">Submit order <span>↗</span></button>
-        <p class="secure-note">🔒 Order details are submitted to Huhu’s ordering system.</p>
+        <p class="secure-note">Order details are submitted securely to Huhu’s ordering system.</p>
       </form>
     </div>
   </div>
@@ -261,8 +307,9 @@ app.innerHTML = `
       <button class="place-order" id="close-install-help-done" type="button">Got it</button>
     </div>
   </div>
+  <button class="mobile-order-bar" id="mobile-order-bar" type="button" aria-label="Open your order"><span><small>YOUR ORDER</small><b><span id="mobile-order-count">0</span> items</b></span><strong id="mobile-order-total">KES 0</strong><span aria-hidden="true">↗</span></button>
   <div class="toast" id="toast" role="status"></div>
-  <button class="chat-launcher" id="chat-launcher" type="button">Chat with Huhu’s <span>💬</span></button>
+  <button class="chat-launcher" id="chat-launcher" type="button"><span class="chat-launcher-mark" aria-hidden="true">H</span> Chat with Huhu's</button>
   <section class="chat-panel" id="chat-panel" aria-label="Huhu’s conversation preview" aria-hidden="true">
     <header class="chat-head"><div><b>Huhu’s assistant</b><small>Demo conversation · Not connected to WhatsApp</small></div><button type="button" id="chat-close">×</button></header>
     <div class="chat-messages" id="chat-messages"><div class="chat-message assistant">Hi! Welcome to Huhu’s. I can help you explore the menu, understand delivery and collection, or explain how ordering works.</div></div>
@@ -309,31 +356,64 @@ function renderCategories() {
     }).join("");
 }
 
+function isCompactCategory(category) {
+  return ["Coffee","Tea & Hot Drinks","Ice Cream","Milkshakes","Fresh Juices","Healthy Blends","Smoothies","Fruit Salads"].includes(category);
+}
+
+function renderProductCard(item, compact = false) {
+  const selectedIndex = Math.min(state.variantSelections[item.id] || 0, Math.max(0, (item.variants?.length || 1) - 1));
+  const selectedVariant = item.variants?.[selectedIndex];
+  const price = selectedVariant ? \`KES \${money(selectedVariant.price)}\` : \`KES \${money(item.price)}\`;
+  const variantMarkup = item.variants?.length ? \`
+    <div class="variant-picker">
+      <span class="variant-heading">Choose \${item.category === "Pizza" ? "size" : "option"}</span>
+      <div class="variant-options" role="group" aria-label="Choose an option for \${escapeHtml(item.name)}">
+        \${item.variants.map((variant, index) => \`<button type="button" class="variant-option \${index === selectedIndex ? "selected" : ""}" data-variant-item="\${escapeHtml(item.id)}" data-variant-index="\${index}" aria-pressed="\${index === selectedIndex}"><span>\${escapeHtml(variant.label)}</span><b>\${money(variant.price)}</b></button>\`).join("")}
+      </div>
+    </div>\` : "";
+  return \`
+    <article class="product-card \${compact ? "product-card-row" : "product-card-feature"}" data-product-card="\${escapeHtml(item.id)}">
+      <div class="product-image"><img src="\${escapeHtml(item.image)}" alt="\${escapeHtml(item.name)}" loading="lazy">\${item.badge ? \`<span class="product-badge">\${escapeHtml(item.badge)}</span>\` : ""}</div>
+      <div class="product-info">
+        <div class="product-category">\${escapeHtml(item.category)}</div>
+        <h3>\${escapeHtml(item.name)}</h3>
+        <p>\${escapeHtml(item.description || "")}</p>
+        \${variantMarkup}
+        <div class="product-card-bottom">
+          <div class="product-price"><b data-price-display="\${escapeHtml(item.id)}">\${price}</b></div>
+          <button class="add-button" data-add="\${escapeHtml(item.id)}" \${item.available === false ? "disabled" : ""} aria-label="Add \${escapeHtml(item.name)} to order">\${item.available === false ? "Unavailable" : "Add to order"} <span aria-hidden="true">＋</span></button>
+        </div>
+      </div>
+    </article>\`;
+}
+
 function renderMenu() {
   const grid = document.querySelector("#product-grid");
   const visible = getVisibleItems();
-  document.querySelector("#results-label").textContent = `Showing ${visible.length} ${visible.length === 1 ? "item" : "items"}${state.activeCategory !== "All" ? " in " + state.activeCategory : ""}`;
+  const label = document.querySelector("#results-label");
+  label.textContent = state.query.trim()
+    ? \`\${visible.length} \${visible.length === 1 ? "result" : "results"} for “\${state.query.trim()}”\`
+    : state.activeCategory === "All" ? \`\${menu.length} favourites across the Huhu's menu\` : \`\${visible.length} items in \${state.activeCategory}\`;
   renderCategories();
   if (!visible.length) {
-    grid.innerHTML = `<div class="empty-state"><span>⌕</span><h3>No menu items found</h3><p>Try another search or choose a different category.</p><button class="reset-search" id="reset-search">Clear search</button></div>`;
+    grid.innerHTML = \`<div class="empty-state"><span>⌕</span><h3>No menu items found</h3><p>Try another search or choose a different category.</p><button class="reset-search" id="reset-search">Clear search</button></div>\`;
     return;
   }
-  grid.innerHTML = visible.map((item) => {
-    const variantSelect = item.variants?.length ? `<label class="variant-label"><span>${item.variants.length > 1 ? "Choose option" : "Available size"}</span><select data-variant="${item.id}">${item.variants.map((v, i) => `<option value="${i}">${escapeHtml(v.label)} · KES ${money(v.price)}</option>`).join("")}</select></label>` : "";
-    return `
-      <article class="product-card">
-        <div class="product-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">${item.badge ? `<span class="product-badge">${escapeHtml(item.badge)}</span>` : ""}</div>
-        <div class="product-info">
-          <div class="product-category">${escapeHtml(item.category)}</div>
-          <h3>${escapeHtml(item.name)}</h3>
-          <p>${escapeHtml(item.description)}</p>
-          <div class="product-card-bottom">
-            <div class="product-price"><b>${formatPrice(item)}</b><small>${item.variants?.length ? "Price varies by option" : "Per item"}</small></div>
-            <button class="add-button" data-add="${item.id}" ${item.available === false ? "disabled" : ""} aria-label="Add ${escapeHtml(item.name)} to order">${item.available === false ? "Unavailable" : "<span>+</span> Add"}</button>
-          </div>
-          ${variantSelect}
+  const groups = state.activeCategory === "All"
+    ? categories.map(category => ({ ...category, items: visible.filter(item => item.category === category.id) })).filter(group => group.items.length)
+    : [{ id: state.activeCategory, label: state.activeCategory, items: visible }];
+  grid.innerHTML = groups.map(group => {
+    const compact = isCompactCategory(group.id);
+    return \`
+      <section class="menu-group \${compact ? "menu-group-compact" : "menu-group-feature"}" id="menu-\${slug(group.id)}">
+        <div class="menu-group-heading">
+          <div><span class="menu-overline">THE MENU / \${escapeHtml(group.label)}</span><h3>\${escapeHtml(group.label)}<span>.</span></h3></div>
+          <span class="menu-group-count">\${group.items.length} \${group.items.length === 1 ? "item" : "items"}</span>
         </div>
-      </article>`;
+        <div class="menu-group-grid \${compact ? "compact-list" : "feature-grid"}">
+          \${group.items.map(item => renderProductCard(item, compact)).join("")}
+        </div>
+      </section>\`;
   }).join("");
 }
 
@@ -365,10 +445,15 @@ function renderCart() {
   const count = cartCount();
   document.querySelector("#cart-count").textContent = count;
   document.querySelector("#drawer-count").textContent = `(${count})`;
+  const cartTotalText = `KES ${money(cartTotal())}`;
+  document.querySelector("#cart-total").textContent = cartTotalText;
+  document.querySelector("#mobile-order-count").textContent = count;
+  document.querySelector("#mobile-order-total").textContent = cartTotalText;
+  document.body.classList.toggle("has-cart-items", count > 0);
   const content = document.querySelector("#cart-content");
   const foot = document.querySelector("#cart-foot");
   if (!state.cart.length) {
-    content.innerHTML = `<div class="cart-empty"><div class="empty-bag">🛍️</div><h3>Your order is empty</h3><p>Good things are waiting on the menu.</p><button class="browse-menu" id="browse-menu">Browse menu</button></div>`;
+    content.innerHTML = `<div class="cart-empty"><div class="empty-bag" aria-hidden="true">＋</div><h3>Your order is empty</h3><p>Good things are waiting on the menu.</p><button class="browse-menu" id="browse-menu">Browse menu</button></div>`;
     foot.innerHTML = "";
     return;
   }
@@ -538,6 +623,14 @@ function showHeroSlide(index) {
 let heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 6500);
 const offersHero = document.querySelector(".offers-hero");
 offersHero?.addEventListener("mouseenter", () => window.clearInterval(heroAutoAdvance));
+let heroSwipeStart = 0;
+offersHero?.addEventListener("touchstart", event => { heroSwipeStart = event.changedTouches[0]?.clientX || 0; }, { passive: true });
+offersHero?.addEventListener("touchend", event => {
+  const delta = (event.changedTouches[0]?.clientX || 0) - heroSwipeStart;
+  if (Math.abs(delta) > 45) showHeroSlide(activeHeroSlide + (delta < 0 ? 1 : -1));
+  heroSwipeStart = 0;
+}, { passive: true });
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) window.clearInterval(heroAutoAdvance);
 offersHero?.addEventListener("mouseleave", () => {
   window.clearInterval(heroAutoAdvance);
   heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 6500);
@@ -559,11 +652,28 @@ document.addEventListener("click", (event) => {
     renderMenu();
     return;
   }
+  const variantButton = event.target.closest("[data-variant-item]");
+  if (variantButton) {
+    const itemId = variantButton.dataset.variantItem;
+    const index = Number(variantButton.dataset.variantIndex);
+    state.variantSelections[itemId] = index;
+    const item = menu.find(entry => entry.id === itemId);
+    const card = variantButton.closest(".product-card");
+    card?.querySelectorAll("[data-variant-item]").forEach(button => {
+      const active = Number(button.dataset.variantIndex) === index;
+      button.classList.toggle("selected", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    const amount = item?.variants?.[index]?.price;
+    const price = card?.querySelector("[data-price-display]");
+    if (price && Number.isFinite(amount)) price.textContent = `KES ${money(amount)}`;
+    return;
+  }
   const addButton = event.target.closest("[data-add]");
   if (addButton) {
     const item = menu.find((entry) => entry.id === addButton.dataset.add);
-    const select = document.querySelector(`[data-variant="${item.id}"]`);
-    const variant = item.variants?.length ? item.variants[Number(select?.value || 0)] : null;
+    if (!item) return;
+    const variant = item.variants?.length ? item.variants[state.variantSelections[item.id] || 0] : null;
     addToCart(item, variant);
     return;
   }
@@ -578,6 +688,11 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("#browse-menu")) { closeCart(); document.querySelector("#menu-section").scrollIntoView({ behavior: "smooth" }); return; }
   if (event.target.closest("#go-checkout")) { openCheckout(); return; }
   if (event.target.closest("#reset-search")) { state.query = ""; document.querySelector("#menu-search").value = ""; state.activeCategory = "All"; renderMenu(); return; }
+  if (event.target.closest("#mobile-order-bar")) { openCart(); return; }
+  const dailyNext = event.target.closest("[data-daily-next]");
+  if (dailyNext) { const track = document.querySelector("#daily-offers-track"); track?.scrollBy({ left: track.clientWidth * 0.82, behavior: "smooth" }); return; }
+  const dailyPrev = event.target.closest("[data-daily-prev]");
+  if (dailyPrev) { const track = document.querySelector("#daily-offers-track"); track?.scrollBy({ left: -track.clientWidth * 0.82, behavior: "smooth" }); return; }
   const goCategory = event.target.closest("[data-go-category]");
   if (goCategory) {
     state.activeCategory = goCategory.dataset.goCategory;
