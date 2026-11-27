@@ -156,22 +156,48 @@ app.innerHTML = `
   </header>
 
   <main>
-    <section class="hero">
-      <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-line"></span> GOOD FOOD. GOOD MOOD.</div>
-        <h1>Big flavour.<br><em>Made to share.</em></h1>
-        <p>Pizza nights, crunchy chicken, stacked burgers and fresh favourites. Find your next Huhu's craving.</p>
-        <div class="hero-actions">
-          <a class="primary-cta" href="#menu-section">Explore the menu <span>↗</span></a>
-          <div class="hero-hours"><span class="live-dot"></span><span>Open daily<br><b>8:00 AM – 11:00 PM</b></span></div>
+    <section class="hero offers-hero" aria-label="Huhu's featured offers">
+      <div class="offers-hero-inner">
+        <div class="offers-copy">
+          <div class="eyebrow"><span class="eyebrow-line"></span> THE HUHU'S DEALS</div>
+          <div class="offers-kicker">GOOD FOOD. BETTER VALUE.</div>
+          <div class="offer-slides" id="offer-slides" aria-live="polite">
+            <article class="offer-slide active" data-offer-slide="0">
+              <div class="offer-tag"><span>HUHU'S FAVOURITE</span><i></i> COMBO 01</div>
+              <h1>The burger<br><em>combo.</em></h1>
+              <p>Crunchy, satisfying and made to hit the spot. Your burger, fries and Coca-Cola in one easy deal.</p>
+              <div class="offer-price"><small>ALL THIS FOR</small><strong><span>KES</span> 650</strong></div>
+              <button class="offer-cta" type="button" data-add="offer-burger-combo">Add offer to order <span>↗</span></button>
+            </article>
+            <article class="offer-slide" data-offer-slide="1" aria-hidden="true">
+              <div class="offer-tag"><span>MADE FOR SHARING</span><i></i> COMBO 02</div>
+              <h1>Crunchy<br><em>family feast.</em></h1>
+              <p>Bring everyone to the table with 12 pieces of chicken, 2 chips, 2 coleslaw and a 2-litre soda.</p>
+              <div class="offer-price"><small>THE WHOLE FEAST</small><strong><span>KES</span> 2,700</strong></div>
+              <button class="offer-cta" type="button" data-add="offer-family-feast">Add offer to order <span>↗</span></button>
+            </article>
+          </div>
+          <div class="offer-controls">
+            <div class="offer-dots" role="tablist" aria-label="Choose an offer">
+              <button class="offer-dot active" type="button" data-hero-index="0" aria-label="Show burger combo" aria-selected="true"></button>
+              <button class="offer-dot" type="button" data-hero-index="1" aria-label="Show family feast" aria-selected="false"></button>
+            </div>
+            <span class="offer-count"><b id="offer-current">01</b> / 02</span>
+            <div class="offer-arrows">
+              <button type="button" data-hero-prev aria-label="Previous offer">←</button>
+              <button type="button" data-hero-next aria-label="Next offer">→</button>
+            </div>
+          </div>
+          <a class="offers-menu-link" href="#menu-section">Browse the full menu <span>↗</span></a>
         </div>
-        <div class="hero-proof"><span>🍕</span> Pizza <i></i><span>🍗</span> Flame grilled chicken <i></i><span>🥤</span> Fresh drinks</div>
-      </div>
-      <div class="hero-art">
-        <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
-        <div class="hero-image-main"><img src="${pizzaImage}" alt="Huhu's pizza"></div>
-        <div class="hero-sticker"><b>MADE</b><span>FOR</span><b>SHARING</b><small>HUHU'S GOODNESS</small></div>
-        <div class="hero-caption"><span class="caption-dot"></span> Your table is waiting</div>
+        <div class="offers-visual">
+          <div class="offers-image-stack">
+            <div class="offers-image active" data-offer-image="0"><img src="${imageAssets.burgerOffer}" alt="Huhu's burger combo with fries and drink"></div>
+            <div class="offers-image" data-offer-image="1"><img src="${imageAssets.chickenOffer}" alt="Huhu's crunchy chicken family feast"></div>
+            <div class="image-stamp"><span>FRESHLY</span><b>MADE</b><span>AT HUHU'S</span></div>
+          </div>
+          <div class="offers-side-note"><span>01 — 02</span><i></i> GOOD FOOD, GOOD MOOD</div>
+        </div>
       </div>
       <div class="hero-bottom-mark">HUHU'S PIZZA & GRILL <span>•</span> KITISURU, NAIROBI</div>
     </section>
@@ -504,7 +530,42 @@ function initChatPreview() {
   panel.querySelectorAll("[data-chat-prompt]").forEach((button) => button.addEventListener("click", () => send(button.dataset.chatPrompt)));
 }
 
+let activeHeroSlide = 0;
+const heroSlideCount = 2;
+function showHeroSlide(index) {
+  activeHeroSlide = (index + heroSlideCount) % heroSlideCount;
+  document.querySelectorAll("[data-offer-slide]").forEach((slide, i) => {
+    const active = i === activeHeroSlide;
+    slide.classList.toggle("active", active);
+    slide.setAttribute("aria-hidden", String(!active));
+  });
+  document.querySelectorAll("[data-offer-image]").forEach((image, i) => image.classList.toggle("active", i === activeHeroSlide));
+  document.querySelectorAll("[data-hero-index]").forEach((dot, i) => {
+    const active = i === activeHeroSlide;
+    dot.classList.toggle("active", active);
+    dot.setAttribute("aria-selected", String(active));
+  });
+  const count = document.querySelector("#offer-current");
+  if (count) count.textContent = String(activeHeroSlide + 1).padStart(2, "0");
+}
+let heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 6500);
+const offersHero = document.querySelector(".offers-hero");
+offersHero?.addEventListener("mouseenter", () => window.clearInterval(heroAutoAdvance));
+offersHero?.addEventListener("mouseleave", () => {
+  window.clearInterval(heroAutoAdvance);
+  heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 6500);
+});
+offersHero?.addEventListener("focusin", () => window.clearInterval(heroAutoAdvance));
+offersHero?.addEventListener("focusout", () => {
+  window.clearInterval(heroAutoAdvance);
+  heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 6500);
+});
+
 document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-hero-next]")) { showHeroSlide(activeHeroSlide + 1); return; }
+  if (event.target.closest("[data-hero-prev]")) { showHeroSlide(activeHeroSlide - 1); return; }
+  const heroDot = event.target.closest("[data-hero-index]");
+  if (heroDot) { showHeroSlide(Number(heroDot.dataset.heroIndex)); return; }
   const categoryButton = event.target.closest("[data-category]");
   if (categoryButton) {
     state.activeCategory = categoryButton.dataset.category;
