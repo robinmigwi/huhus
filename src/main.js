@@ -161,21 +161,15 @@ app.innerHTML = `
         <div class="offers-copy">
           <div class="eyebrow"><span class="eyebrow-line"></span> THE HUHU'S DEALS</div>
           <div class="offers-kicker">GOOD FOOD. BETTER VALUE.</div>
-          <div class="offer-slides" id="offer-slides" aria-live="polite">
-            <article class="offer-slide active" data-offer-slide="0">
-              <div class="offer-tag"><span>HUHU'S FAVOURITE</span><i></i> COMBO 01</div>
-              <h1>The burger<br><em>combo.</em></h1>
-              <p>Crunchy, satisfying and made to hit the spot. Your burger, fries and Coca-Cola in one easy deal.</p>
-              <div class="offer-price"><small>ALL THIS FOR</small><strong><span>KES</span> 650</strong></div>
-              <button class="offer-cta" type="button" data-add="offer-burger-combo">Add offer to order <span>↗</span></button>
-            </article>
-            <article class="offer-slide" data-offer-slide="1" aria-hidden="true">
-              <div class="offer-tag"><span>MADE FOR SHARING</span><i></i> COMBO 02</div>
-              <h1>Crunchy<br><em>family feast.</em></h1>
-              <p>Bring everyone to the table with 12 pieces of chicken, 2 chips, 2 coleslaw and a 2-litre soda.</p>
-              <div class="offer-price"><small>THE WHOLE FEAST</small><strong><span>KES</span> 2,700</strong></div>
-              <button class="offer-cta" type="button" data-add="offer-family-feast">Add offer to order <span>↗</span></button>
-            </article>
+          <h1>Good food.<br><em>Great offers.</em></h1>
+          <p>From a quick burger combo to a feast for the whole crew, there’s always something worth sharing at Huhu’s.</p>
+          <button class="offer-cta" id="hero-add-offer" type="button" data-add="offer-burger-combo">Add featured deal <span>↗</span></button>
+          <button class="offers-menu-link" type="button" data-go-category="Offers">Explore all offers <span>↗</span></button>
+        </div>
+        <div class="offers-visual">
+          <div class="offers-image-stack">
+            <div class="offers-image active" data-offer-image="0"><img src="${imageAssets.burgerOffer}" alt="Huhu's Burger Combo offer, including burger, fries and Coca-Cola for KES 650"></div>
+            <div class="offers-image" data-offer-image="1"><img src="${imageAssets.chickenOffer}" alt="Huhu's Crunchy Family Feast offer with chicken, chips, coleslaw and soda for KES 2,700"></div>
           </div>
           <div class="offer-controls">
             <div class="offer-dots" role="tablist" aria-label="Choose an offer">
@@ -188,15 +182,6 @@ app.innerHTML = `
               <button type="button" data-hero-next aria-label="Next offer">→</button>
             </div>
           </div>
-          <a class="offers-menu-link" href="#menu-section">Browse the full menu <span>↗</span></a>
-        </div>
-        <div class="offers-visual">
-          <div class="offers-image-stack">
-            <div class="offers-image active" data-offer-image="0"><img src="${imageAssets.burgerOffer}" alt="Huhu's burger combo with fries and drink"></div>
-            <div class="offers-image" data-offer-image="1"><img src="${imageAssets.chickenOffer}" alt="Huhu's crunchy chicken family feast"></div>
-            <div class="image-stamp"><span>FRESHLY</span><b>MADE</b><span>AT HUHU'S</span></div>
-          </div>
-          <div class="offers-side-note"><span>01 — 02</span><i></i> GOOD FOOD, GOOD MOOD</div>
         </div>
       </div>
       <div class="hero-bottom-mark">HUHU'S PIZZA & GRILL <span>•</span> KITISURU, NAIROBI</div>
@@ -534,12 +519,9 @@ let activeHeroSlide = 0;
 const heroSlideCount = 2;
 function showHeroSlide(index) {
   activeHeroSlide = (index + heroSlideCount) % heroSlideCount;
-  document.querySelectorAll("[data-offer-slide]").forEach((slide, i) => {
-    const active = i === activeHeroSlide;
-    slide.classList.toggle("active", active);
-    slide.setAttribute("aria-hidden", String(!active));
+  document.querySelectorAll("[data-offer-image]").forEach((image, i) => {
+    image.classList.toggle("active", i === activeHeroSlide);
   });
-  document.querySelectorAll("[data-offer-image]").forEach((image, i) => image.classList.toggle("active", i === activeHeroSlide));
   document.querySelectorAll("[data-hero-index]").forEach((dot, i) => {
     const active = i === activeHeroSlide;
     dot.classList.toggle("active", active);
@@ -547,6 +529,11 @@ function showHeroSlide(index) {
   });
   const count = document.querySelector("#offer-current");
   if (count) count.textContent = String(activeHeroSlide + 1).padStart(2, "0");
+  const addButton = document.querySelector("#hero-add-offer");
+  if (addButton) {
+    addButton.dataset.add = activeHeroSlide === 0 ? "offer-burger-combo" : "offer-family-feast";
+    addButton.setAttribute("aria-label", activeHeroSlide === 0 ? "Add Huhu's Burger Combo to your order" : "Add Huhu's Crunchy Family Feast to your order");
+  }
 }
 let heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 6500);
 const offersHero = document.querySelector(".offers-hero");
