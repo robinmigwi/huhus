@@ -646,7 +646,7 @@ function showHeroSlide(index) {
   const description = document.querySelector("#hero-offer-description");
   const price = document.querySelector("#hero-offer-price");
   if (kicker) kicker.textContent = deal.kicker;
-  if (title) title.textContent = item?.name || deal.fallbackName;
+  if (title) title.innerHTML = `${escapeHtml(item?.name || deal.fallbackName)}<span class="deal-title-period">.</span>`;
   if (description) description.textContent = item?.description || deal.fallbackDescription;
   if (price) {
     price.textContent = Number.isFinite(item?.price) ? `KES ${money(item.price)}` : "Ask in store";
