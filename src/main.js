@@ -4,6 +4,7 @@ import { menuImageMap, categoryImageMap } from "./menu-images.js";
 if (window.location.pathname.startsWith("/admin")) {
   import("./admin.js");
 } else if (window.location.pathname.startsWith("/offers")) {
+  import("./customer-premium.css");
   import("./offers.js");
 } else {
   import("./customer-premium.css");

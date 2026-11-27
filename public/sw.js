@@ -1,8 +1,9 @@
-const SHELL_CACHE = "huhus-shell-v1";
-const RUNTIME_CACHE = "huhus-runtime-v1";
+const SHELL_CACHE = "huhus-shell-v2";
+const RUNTIME_CACHE = "huhus-runtime-v2";
 const SHELL_FILES = [
   "/",
   "/index.html",
+  "/offers",
   "/manifest.webmanifest",
   "/offline.html",
   "/icons/huhus-icon-192.png",
