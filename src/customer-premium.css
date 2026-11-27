@@ -1,11 +1,11 @@
 
 /* Huhu's premium storefront design system */
 :root {
-  --h-red: #9c111a;
-  --h-red-deep: #660b12;
-  --h-red-dark: #7c0d15;
-  --h-gold: #f2bc32;
-  --h-cream: #fbf7ef;
+  --h-red: #b83227;
+  --h-red-deep: #84251f;
+  --h-red-dark: #982c23;
+  --h-gold: #e9b84b;
+  --h-cream: #fff8ed;
   --h-paper: #fffdf8;
   --h-ink: #211d1a;
   --h-muted: #726b64;
@@ -388,4 +388,150 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 @media (prefers-reduced-motion:reduce) {
   *, *:before, *:after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+
+
+/* Live deal stage: food photography on one side, an editable offer on the other. */
+.offers-hero {
+  min-height: 0;
+  padding: clamp(38px, 5.2vw, 72px) max(6vw, 26px) 62px;
+  color: #fff8ed;
+  background: var(--h-red);
+}
+.offers-hero:before { display: none; }
+.offers-hero-inner {
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr);
+  align-items: center;
+  gap: clamp(30px, 5.5vw, 82px);
+}
+.offers-visual { order: 0; min-width: 0; width: 100%; }
+.offers-image-stack {
+  aspect-ratio: 16 / 10;
+  height: auto;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #f1e5d6;
+  box-shadow: 0 12px 30px rgba(50, 9, 5, .14);
+}
+.offers-image img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: block;
+  padding: 0;
+  margin: 0;
+  object-fit: cover;
+  object-position: center 48%;
+}
+.offers-copy {
+  order: 1;
+  max-width: 570px;
+}
+.offers-hero .eyebrow {
+  color: #ffe5ad;
+}
+.offers-kicker {
+  margin-top: 23px;
+  color: #f4ca75;
+  font-size: 9px;
+  letter-spacing: .2em;
+}
+.offers-copy h1 {
+  margin: 15px 0 14px;
+  color: #fff8ed;
+  font-size: clamp(43px, 4.6vw, 66px);
+  line-height: .98;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+}
+.offers-copy h1 .deal-title-period {
+  color: var(--h-gold);
+}
+.offers-copy > p {
+  max-width: 430px;
+  color: rgba(255, 248, 237, .82);
+  font-size: 13px;
+  line-height: 1.75;
+}
+.offer-price-line {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 25px;
+  padding: 17px 0 16px;
+  border-top: 1px solid rgba(255, 248, 237, .22);
+  border-bottom: 1px solid rgba(255, 248, 237, .22);
+}
+.offer-price-line > div { display: grid; gap: 5px; }
+.offer-price-line span {
+  color: #f6d18a;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .19em;
+}
+.offer-price-line strong {
+  color: #fff8ed;
+  font: 700 clamp(31px, 3.5vw, 43px)/.95 Oswald, sans-serif;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.offer-price-line small {
+  max-width: 145px;
+  color: rgba(255, 248, 237, .67);
+  font-size: 9px;
+  line-height: 1.5;
+  text-align: right;
+}
+.offer-cta {
+  margin-top: 22px;
+  padding: 14px 17px;
+  color: #451713;
+  background: var(--h-gold);
+  box-shadow: none;
+}
+.offer-cta:hover { background: #f7cf72; }
+.offer-cta:disabled { opacity: .56; cursor: not-allowed; transform: none; }
+.offers-menu-link {
+  margin-top: 16px;
+  color: rgba(255, 248, 237, .82);
+  border-bottom-color: rgba(255, 248, 237, .32);
+}
+.offers-menu-link span { color: #f6cf79; }
+.offer-controls { margin-top: 13px; }
+.offer-dot { background: rgba(255, 248, 237, .35); }
+.offer-dot.active { background: var(--h-gold); }
+.offer-count { color: rgba(255, 248, 237, .66); }
+.offer-count b { color: #fff8ed; }
+.offer-arrows button { border-color: rgba(255, 248, 237, .45); }
+.hero-bottom-mark { color: rgba(255, 248, 237, .5); }
+
+@media (max-width: 800px) {
+  .offers-hero { padding: 31px 19px 53px; }
+  .offers-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 21px;
+  }
+  .offers-visual { order: 0; }
+  .offers-copy { order: 1; max-width: none; }
+  .offers-image-stack { aspect-ratio: 16 / 10; }
+  .offers-kicker { margin-top: 19px; }
+  .offers-copy h1 {
+    margin: 13px 0 10px;
+    font-size: clamp(42px, 10.5vw, 62px);
+  }
+  .offers-copy > p { max-width: 520px; font-size: 12px; }
+  .offer-price-line { margin-top: 19px; padding: 14px 0; }
+  .offer-price-line strong { font-size: 34px; }
+  .offer-cta { margin-top: 17px; }
+  .hero-bottom-mark { left: 19px; bottom: 13px; font-size: 6px; }
+}
+@media (max-width: 430px) {
+  .offers-hero { padding: 25px 15px 49px; }
+  .offers-image-stack { aspect-ratio: 1.4 / 1; }
+  .offer-controls { margin-top: 10px; }
+  .offer-price-line { gap: 10px; }
+  .offer-price-line small { max-width: 112px; }
+  .offer-cta { width: 100%; justify-content: space-between; }
+  .offers-menu-link { margin-top: 15px; }
 }

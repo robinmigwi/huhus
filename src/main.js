@@ -119,6 +119,12 @@ let menu = [
 menu = menu.map((item) => ({ ...item, image: menuImageMap[item.id] || categoryImageMap[item.category] || item.image }));
 categories = categories.map((category) => ({ ...category, image: categoryImageMap[category.id] || category.image }));
 
+const featuredDeals = [
+  { id: "offer-burger-combo", kicker: "THE EVERYDAY COMBO", fallbackName: "Huhu's Burger Combo", fallbackDescription: "Burger, fries and Coca-Cola." },
+  { id: "offer-family-feast", kicker: "MADE FOR SHARING", fallbackName: "Crunchy Family Feast", fallbackDescription: "12 pieces of chicken, 2 chips, 2 coleslaw and 2-litre soda." },
+];
+const initialHeroItems = featuredDeals.map((deal) => menu.find((item) => item.id === deal.id));
+
 function slug(value) {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
@@ -167,32 +173,40 @@ app.innerHTML = `
   </header>
 
   <main>
-    <section class="hero offers-hero" aria-label="Huhu's featured offers">
+    <section class="hero offers-hero deal-stage" aria-label="Featured Huhu's deals">
       <div class="offers-hero-inner">
-        <div class="offers-copy">
-          <div class="eyebrow"><span class="eyebrow-line"></span> THE HUHU'S DEALS</div>
-          <div class="offers-kicker">GOOD FOOD. BETTER VALUE.</div>
-          <h1>Good food.<br><em>Great offers.</em></h1>
-          <p>From a quick burger combo to a feast for the whole crew, there’s always something worth sharing at Huhu’s.</p>
-          <button class="offer-cta" id="hero-add-offer" type="button" data-add="offer-burger-combo">Add featured deal <span>↗</span></button>
-          <button class="offers-menu-link" type="button" data-go-category="Offers">Explore all offers <span>↗</span></button>
-        </div>
         <div class="offers-visual">
-          <div class="offers-image-stack">
-            <div class="offers-image active" data-offer-image="0"><img src="${imageAssets.burgerOffer}" alt="Huhu's Burger Combo offer, including burger, fries and Coca-Cola for KES 650"></div>
-            <div class="offers-image" data-offer-image="1"><img src="${imageAssets.chickenOffer}" alt="Huhu's Crunchy Family Feast offer with chicken, chips, coleslaw and soda for KES 2,700"></div>
+          <div class="offers-image-stack" aria-label="Featured deal photography">
+            <div class="offers-image active" data-offer-image="0">
+              <img id="hero-offer-image-0" src="${escapeHtml(initialHeroItems[0]?.image || imageAssets.burger)}" alt="${escapeHtml(initialHeroItems[0]?.name || "Huhu's Burger Combo")}">
+            </div>
+            <div class="offers-image" data-offer-image="1">
+              <img id="hero-offer-image-1" src="${escapeHtml(initialHeroItems[1]?.image || imageAssets.chicken)}" alt="${escapeHtml(initialHeroItems[1]?.name || "Crunchy Family Feast")}">
+            </div>
           </div>
           <div class="offer-controls">
-            <div class="offer-dots" role="tablist" aria-label="Choose an offer">
-              <button class="offer-dot active" type="button" data-hero-index="0" aria-label="Show burger combo" aria-selected="true"></button>
-              <button class="offer-dot" type="button" data-hero-index="1" aria-label="Show family feast" aria-selected="false"></button>
+            <div class="offer-dots" role="tablist" aria-label="Choose a featured deal">
+              <button class="offer-dot active" type="button" data-hero-index="0" aria-label="Show Huhu's Burger Combo" aria-selected="true"></button>
+              <button class="offer-dot" type="button" data-hero-index="1" aria-label="Show Crunchy Family Feast" aria-selected="false"></button>
             </div>
             <span class="offer-count"><b id="offer-current">01</b> / 02</span>
             <div class="offer-arrows">
-              <button type="button" data-hero-prev aria-label="Previous offer">←</button>
-              <button type="button" data-hero-next aria-label="Next offer">→</button>
+              <button type="button" data-hero-prev aria-label="Previous deal">←</button>
+              <button type="button" data-hero-next aria-label="Next deal">→</button>
             </div>
           </div>
+        </div>
+        <div class="offers-copy">
+          <div class="eyebrow"><span class="eyebrow-line"></span> THE HUHU'S DEALS</div>
+          <div class="offers-kicker" id="hero-offer-kicker">THE EVERYDAY COMBO</div>
+          <h1 id="hero-offer-title">${escapeHtml(initialHeroItems[0]?.name || featuredDeals[0].fallbackName)}<span class="deal-title-period">.</span></h1>
+          <p id="hero-offer-description">${escapeHtml(initialHeroItems[0]?.description || featuredDeals[0].fallbackDescription)}</p>
+          <div class="offer-price-line">
+            <div><span>ONE GOOD PRICE</span><strong id="hero-offer-price">KES ${money(initialHeroItems[0]?.price ?? 650)}</strong></div>
+            <small>Made fresh when you order.</small>
+          </div>
+          <button class="offer-cta" id="hero-add-offer" type="button" data-add="offer-burger-combo">Add this deal to your order <span>↗</span></button>
+          <button class="offers-menu-link" type="button" data-go-category="Offers">Browse all Huhu's offers <span>↗</span></button>
         </div>
       </div>
       <div class="hero-bottom-mark">HUHU'S PIZZA & GRILL <span>•</span> KITISURU, NAIROBI</div>
@@ -568,6 +582,7 @@ async function loadBackendMenu() {
       categories = payload.categories.map((item) => ({ ...(previous.get(item.id) || {}), ...item, image: item.image_url || categoryImageMap[item.id] || (previous.get(item.id) || {}).image || pizzaImage }));
     }
     renderMenu();
+    showHeroSlide(activeHeroSlide);
   } catch { /* keep the bundled catalogue available when offline */ }
 }
 async function loadPaymentOptions() {
@@ -606,9 +621,11 @@ function initChatPreview() {
 }
 
 let activeHeroSlide = 0;
-const heroSlideCount = 2;
+const heroSlideCount = featuredDeals.length;
 function showHeroSlide(index) {
   activeHeroSlide = (index + heroSlideCount) % heroSlideCount;
+  const deal = featuredDeals[activeHeroSlide];
+  const item = menu.find((entry) => entry.id === deal.id);
   document.querySelectorAll("[data-offer-image]").forEach((image, i) => {
     image.classList.toggle("active", i === activeHeroSlide);
   });
@@ -617,15 +634,37 @@ function showHeroSlide(index) {
     dot.classList.toggle("active", active);
     dot.setAttribute("aria-selected", String(active));
   });
+
+  const image = document.querySelector(`[data-offer-image="${activeHeroSlide}"] img`);
+  if (image && item) {
+    image.src = item.image || (activeHeroSlide === 0 ? imageAssets.burger : imageAssets.chicken);
+    image.alt = `${item.name}. ${item.description || "Featured at Huhu's"}`;
+  }
+
+  const kicker = document.querySelector("#hero-offer-kicker");
+  const title = document.querySelector("#hero-offer-title");
+  const description = document.querySelector("#hero-offer-description");
+  const price = document.querySelector("#hero-offer-price");
+  if (kicker) kicker.textContent = deal.kicker;
+  if (title) title.innerHTML = `${escapeHtml(item?.name || deal.fallbackName)}<span class="deal-title-period">.</span>`;
+  if (description) description.textContent = item?.description || deal.fallbackDescription;
+  if (price) {
+    price.textContent = Number.isFinite(item?.price) ? `KES ${money(item.price)}` : "Ask in store";
+  }
+
   const count = document.querySelector("#offer-current");
   if (count) count.textContent = String(activeHeroSlide + 1).padStart(2, "0");
   const addButton = document.querySelector("#hero-add-offer");
   if (addButton) {
-    addButton.dataset.add = activeHeroSlide === 0 ? "offer-burger-combo" : "offer-family-feast";
-    addButton.setAttribute("aria-label", activeHeroSlide === 0 ? "Add Huhu's Burger Combo to your order" : "Add Huhu's Crunchy Family Feast to your order");
+    addButton.dataset.add = deal.id;
+    addButton.disabled = !item || item.available === false;
+    addButton.setAttribute("aria-label", item?.available === false
+      ? `${item.name} is currently unavailable`
+      : `Add ${item?.name || deal.fallbackName} to your order`);
   }
 }
-let heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 6500);
+showHeroSlide(0);
+let heroAutoAdvance = window.setInterval(() => showHeroSlide(activeHeroSlide + 1), 7500);
 const offersHero = document.querySelector(".offers-hero");
 offersHero?.addEventListener("mouseenter", () => window.clearInterval(heroAutoAdvance));
 let heroSwipeStart = 0;
