@@ -16,13 +16,13 @@ const cards = offers.map((offer, index) => [
 app.innerHTML = [
   '<div class="preview-strip"><span class="preview-pulse"></span><b>PREVIEW ENVIRONMENT</b><span>Orders are for demonstration only</span></div>',
   '<header class="site-header">',
-  '<a class="brand" href="/" aria-label="Huhu\\'s home"><img src="', logo, '" alt="Huhu\\'s Pizza & Grill logo"><span class="brand-wordmark">HUHU\\'S <small>PIZZA & GRILL</small></span></a>',
+  '<a class="brand" href="/" aria-label="Huhu&#39;s home"><img src="', logo, '" alt="Huhu&#39;s Pizza & Grill logo"><span class="brand-wordmark">HUHU&#39;S <small>PIZZA & GRILL</small></span></a>',
   '<nav class="desktop-nav" aria-label="Main navigation"><a href="/#menu-section">Menu</a><a href="/offers" class="nav-active">Offers</a><a href="https://www.google.com/maps/search/?api=1&query=Total+Energies%2C+Kitisuru+Place%2C+Getathuru+Road%2C+Nairobi" target="_blank" rel="noopener">Find us</a></nav>',
   '<div class="header-actions"><a class="install-app" href="/#menu-section">Order online <span>↗</span></a></div>',
   '</header>',
   '<main class="offers-page">',
-  '<section class="offers-page-intro"><div class="eyebrow dark-eyebrow"><span class="eyebrow-line"></span> GOOD FOOD, GOOD VALUE</div><h1>Offers worth<br>making room for<span>.</span></h1><p>Explore Huhu\\'s promotions and pick your next favourite.</p><a class="offers-back-link" href="/#menu-section">Browse the full menu <span>↗</span></a></section>',
-  '<section class="offers-page-grid" aria-label="All Huhu\\'s offers">', cards, '</section>',
+  '<section class="offers-page-intro"><div class="eyebrow dark-eyebrow"><span class="eyebrow-line"></span> GOOD FOOD, GOOD VALUE</div><h1>Offers worth<br>making room for<span>.</span></h1><p>Explore Huhu&#39;s promotions and pick your next favourite.</p><a class="offers-back-link" href="/#menu-section">Browse the full menu <span>↗</span></a></section>',
+  '<section class="offers-page-grid" aria-label="All Huhu&#39;s offers">', cards, '</section>',
   '</main>',
-  '<footer class="site-footer"><a class="footer-brand" href="/"><img src="', logo, '" alt="Huhu\\'s Pizza & Grill"><span>HUHU\\'S <small>PIZZA & GRILL</small></span></a><nav><a href="/#menu-section">Menu</a><a href="/offers">Offers</a><a href="https://www.google.com/maps/search/?api=1&query=Total+Energies%2C+Kitisuru+Place%2C+Getathuru+Road%2C+Nairobi" target="_blank" rel="noopener">Find us</a></nav><span class="footer-demo">Ordering preview</span></footer>'
+  '<footer class="site-footer"><a class="footer-brand" href="/"><img src="', logo, '" alt="Huhu&#39;s Pizza & Grill"><span>HUHU&#39;S <small>PIZZA & GRILL</small></span></a><nav><a href="/#menu-section">Menu</a><a href="/offers">Offers</a><a href="https://www.google.com/maps/search/?api=1&query=Total+Energies%2C+Kitisuru+Place%2C+Getathuru+Road%2C+Nairobi" target="_blank" rel="noopener">Find us</a></nav><span class="footer-demo">Ordering preview</span></footer>'
 ].join("");
