@@ -1,5 +1,5 @@
-const SHELL_CACHE = "huhus-shell-v2";
-const RUNTIME_CACHE = "huhus-runtime-v2";
+const SHELL_CACHE = "huhus-shell-v3";
+const RUNTIME_CACHE = "huhus-runtime-v3";
 const SHELL_FILES = [
   "/",
   "/index.html",
